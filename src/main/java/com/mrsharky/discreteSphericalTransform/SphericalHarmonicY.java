@@ -68,16 +68,39 @@ public class SphericalHarmonicY implements Serializable {
         if (latPoints.length != lonPoints.length) {
             throw new Exception("number of latPoints and number of lonPoints must be the same");
         }
+        
+        double[] latPoints_c = new double[latPoints.length];
+        double[] lonPoints_c = new double[lonPoints.length];
+        
+        // Check lat/lon points are valid
+        for (int i = 0; i < latPoints.length; i++) {
+            double currLat = latPoints[i];
+            double currLon = lonPoints[i];
+            if (currLat < -Math.PI/2.0 -(10e-10)  || currLat > Math.PI/2.0 +(10e-10)) {
+                throw new Exception("Lat points need to be between -pi/2 & pi/2");
+            }
+            
+            if (currLon < -Math.PI -(10e-10) || currLon > Math.PI + (10e-10) ) {
+                throw new Exception("Lon points need to be between -pi & pi");
+            }
+            
+            // Adjust lat so its in ranges 0 < lat < pi 
+            latPoints_c[i] = currLat + Math.PI/2.0;
+            
+            // Adjust lon so its in ranges 0 < lon < 2pi
+            lonPoints_c[i] = currLon + Math.PI;
+        }
+        
         _q = q;
-        _data = new SphericalHarmonic[latPoints.length];
+        _data = new SphericalHarmonic[latPoints_c.length];
         
         for (int i = 0; i < _data.length; i++) {
             _data[i] = new SphericalHarmonic(q);
         }
 
-        double[] phi = DoubleArray.Cos(latPoints);
+        double[] phi = DoubleArray.Cos(latPoints_c);
         SphericalAssociatedLegendrePolynomials P_k_l = new SphericalAssociatedLegendrePolynomials(q,phi);
-        double[] theta = lonPoints;
+        double[] theta = lonPoints_c;
         Complex[][] expHelp = this.ExponentialHelper(q, theta);
             
         for (int k = 0; k <= q; k++) {

@@ -5,29 +5,20 @@
  */
 package com.mrsharky.dataprocessor;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
+import com.mrsharky.helpers.InputParser_Abstract;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.GnuParser;
-import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 
 /**
  *
  * @author mrsharky
  */
-public class SphericalHarmonics_InputParser {
-    
-    private boolean _inputsCorrect;
-    
+public class SphericalHarmonics_InputParser extends InputParser_Abstract {
+        
     public String input;
     public String variable;
     public String time;
@@ -39,76 +30,32 @@ public class SphericalHarmonics_InputParser {
     public boolean normalize;
     public int q;
     
-    public boolean InputsCorrect() {
-        return this._inputsCorrect;
-    }
-    
     public SphericalHarmonics_InputParser(String[] args, String className) {
-        
-        _inputsCorrect = false;
-       
-        // create the command line parser
-        CommandLineParser parser = new GnuParser();
-
-        Options options = GenerateOptions();
-           
-        try {
-            // parse the command line arguments
-            CommandLine line = parser.parse( options, args );
-            
-            if (line.hasOption("help")) {
-                // automatically generate the help statement
-                HelpFormatter formatter = new HelpFormatter();
-                formatter.printHelp( className + " Help", options );
-                _inputsCorrect = false;
-            } else {
-                DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-                
-                // Required Variables
-                input = line.getOptionValue("input");
-                output = line.getOptionValue("output");
-                variable = line.getOptionValue("variable");
-                time = line.getOptionValue("time");           
-                q = Integer.valueOf(line.getOptionValue("q"));
-                lowerDateCutoff = format.parse(line.getOptionValue("lowerbaseline"));
-                upperDateCutoff = format.parse(line.getOptionValue("upperbaseline"));
-                normalize = line.hasOption("normalize") ? true : false;
-                
-                startDate = format.parse(line.getOptionValue("startDate"));
-                endDate = format.parse(line.getOptionValue("endDate"));
-                _inputsCorrect = true;
-                
-                
-                // Print out all the input arguments
-                try {
-                    System.out.println("------------------------------------------------------------------------");
-                    System.out.println(className);
-                    System.out.println("------------------------------------------------------------------------");
-                    Field[] fields = this.getClass().getFields();
-                    for (Field field : fields) {
-                        if (Modifier.isPublic(field.getModifiers())) {
-                            System.out.println(field.getName() + ": " + field.get(this).toString());
-                        }
-                    }
-                    System.out.println();
-                } catch (Exception ex) {
-                    
-                }
-            }
-        } catch ( ParseException exp ) {
-            // oops, something went wrong
-            System.err.println( "Parsing failed.  Reason: " + exp.getMessage() );
-            
-            // automatically generate the help statement
-            HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp( className + " Help", options );
-            _inputsCorrect = false;
-        } catch (java.text.ParseException ex) {
-            Logger.getLogger(SphericalHarmonics_InputParser.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        super(args, className);
     }
     
-    private Options GenerateOptions() {
+    @Override
+    protected void ProcessInputs(CommandLine line) throws java.text.ParseException {               
+        
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+
+        // Required Variables
+        input = line.getOptionValue("input");
+        output = line.getOptionValue("output");
+        variable = line.getOptionValue("variable");
+        time = line.getOptionValue("time");           
+        q = Integer.valueOf(line.getOptionValue("q"));
+        lowerDateCutoff = format.parse(line.getOptionValue("lowerbaseline"));
+        upperDateCutoff = format.parse(line.getOptionValue("upperbaseline"));
+        normalize = line.hasOption("normalize");
+
+        startDate = format.parse(line.getOptionValue("startDate"));
+        endDate = format.parse(line.getOptionValue("endDate"));
+        _inputsCorrect = true;
+    }
+    
+    @Override
+    protected Options GenerateOptions() {
         // create the Options
         Options options = new Options();
         

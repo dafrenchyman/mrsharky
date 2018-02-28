@@ -101,6 +101,7 @@ public class Climate_PcaStations {
         }
         JavaRDD<Quartet<Integer, Date, Integer, Integer>> rddData = jsc.parallelize(rows, 24);
         
+        // Run the actual Spark job
         GenerateHarmonics generateWeights = new GenerateHarmonics(eigenSpherical, eigenInvDst, stationData, Eigens, q, normalize);
         JavaRDD<Quintet<Integer, Date, Integer, Integer, Complex>> javaRddData = rddData.mapPartitions(s -> generateWeights.call(s));
         List<Quintet<Integer, Date, Integer, Integer, Complex>> allHarmonics = javaRddData.collect();
@@ -161,8 +162,8 @@ public class Climate_PcaStations {
         
         // Generate the "Map" for each date
         finalResults.Print();
-        //finalResults.SaveOverallResultsToCsv(ResultsDestination);
-        SerializeObject(finalResults, ResultsDestination);
+        finalResults.SaveOverallResultsToCsv(ResultsDestination);
+        //SerializeObject(finalResults, ResultsDestination);
     }
      
     public static void main(String[] args) throws Exception {

@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mrsharky.climate.nearestNeighbor;
+package com.mrsharky.climate;
 
+import com.mrsharky.climate.nearestNeighbor.NetCdfGlobalAverageSpectral;
 import com.mrsharky.climate.sphericalHarmonic.ClimateFromStations1;
 import com.mrsharky.climate.sphericalHarmonic.ClimateFromStations1_FullSpectra;
 import com.mrsharky.dataprocessor.SphericalHarmonics_LongTermStations;
@@ -26,7 +27,7 @@ public class Test_fullQ {
         String ncepVariable = "air";
         String ncepTime = "time";
         
-        double[] varExplained = new double[]{0.8, 0.9, 0.99};
+        double[] varExplained = new double[]{0.8};
         
         List<Pair<String, String>> baselines = new ArrayList<Pair<String, String>>();        
         //baselines.add(Pair.with("1850-12-31", "2014-12-31"));
@@ -38,23 +39,58 @@ public class Test_fullQ {
         List<Pair<Integer, Integer>> gridBoxes = new ArrayList<Pair<Integer, Integer>>();        
         gridBoxes.add(Pair.with(0, 0));
         //gridBoxes.add(Pair.with(5, 10));
-        gridBoxes.add(Pair.with(10, 20));
+        //gridBoxes.add(Pair.with(10, 20));
         //gridBoxes.add(Pair.with(15, 30));
         //gridBoxes.add(Pair.with(20, 40));
+        //gridBoxes.add(Pair.with(40, 80));
+        gridBoxes.add(Pair.with(60, 120));
         
         boolean halfPca = false;
         
+        int pointsQ = 102;
         
         List<Integer> qs = new ArrayList<Integer>();
         qs.add(0);
-        qs.add(10);
-        qs.add(20);
-        qs.add(30);
+        //qs.add(10);
+        //qs.add(20);
+        //qs.add(30);
         //qs.add(40);
         //qs.add(50);
         //qs.add(60);
-        boolean[] normalized = new boolean[]{ false };
+        boolean[] normalized = new boolean[]{ true, false };
         
+        // Generate Baselines
+        if (false) {
+            for (Pair<String, String> currBaseline : baselines) {
+                String lowerBaseline = currBaseline.getValue0();
+                String upperBaseline = currBaseline.getValue1();
+                        
+                for (String input : ncepDatasets) {
+                    String baselineDataset = "Results/NewBaseline_Spectral/dataset=" + input + 
+                            "_lowerBaseline=" + lowerBaseline + 
+                            "_upperBaseline=" + upperBaseline +
+                            ".csv";
+                    File baselineFile = new File(baselineDataset);
+                    
+                    if (!baselineFile.exists()) {
+                        String inputData = "Data/" + input;
+
+                        String inputArgs =
+                                "--input \""+ inputData + "\" " +
+                                "--output \""+ baselineDataset + "\" " +
+                                "--variable \""+ ncepVariable + "\" " +
+                                "--lowerbaseline \"" + lowerBaseline + "\" " +
+                                "--upperbaseline \"" + upperBaseline + "\" " +
+                                "--time \"" + ncepTime + "\"";
+                        String[] arguments = inputArgs.split(" ");
+                        NetCdfGlobalAverageSpectral.main(arguments);
+                    }
+                }
+            }
+        }
+        
+        
+        // Other stuff
         if (true) {
             for (Pair<String, String> currBaseline : baselines) {
                 String lowerBaseline = currBaseline.getValue0();
@@ -66,6 +102,7 @@ public class Test_fullQ {
                         int lonCount = gridBox.getValue1();
                     
                         String pointFilename = "dataset=" + input + 
+                                "_q=" + pointsQ +
                                 "_lowerBaseline=" + lowerBaseline + 
                                 "_upperBaseline=" + upperBaseline +
                                 "_latCount=" + latCount +
@@ -85,6 +122,7 @@ public class Test_fullQ {
                                     "--input \""+ inputData + "\" " +
                                     "--output \""+ "Results/NewPoints/" + pointFilename + "\" " +
                                     "--variable \""+ ncepVariable + "\" " +
+                                    "--q \"" + pointsQ + "\" " +
                                     "--time \"" + ncepTime + "\" " +
                                     "--latCount \"" + latCount + "\" " +
                                     "--lonCount \"" + lonCount + "\" " +
@@ -98,6 +136,21 @@ public class Test_fullQ {
                         
                         List<Pair<String, String>> pcaDates = new ArrayList<Pair<String, String>>();
                         pcaDates.add(Pair.with("1850-12-31", "2014-12-31"));
+                        /*pcaDates.add(Pair.with("1850-12-31", "1880-12-31"));
+                        pcaDates.add(Pair.with("1860-12-31", "1890-12-31"));
+                        pcaDates.add(Pair.with("1870-12-31", "1900-12-31"));
+                        pcaDates.add(Pair.with("1880-12-31", "1910-12-31"));
+                        pcaDates.add(Pair.with("1890-12-31", "1920-12-31"));
+                        pcaDates.add(Pair.with("1900-12-31", "1930-12-31"));
+                        pcaDates.add(Pair.with("1910-12-31", "1940-12-31"));
+                        pcaDates.add(Pair.with("1920-12-31", "1950-12-31"));
+                        pcaDates.add(Pair.with("1930-12-31", "1940-12-31"));
+                        pcaDates.add(Pair.with("1940-12-31", "1950-12-31"));
+                        pcaDates.add(Pair.with("1950-12-31", "1980-12-31"));
+                        pcaDates.add(Pair.with("1960-12-31", "1990-12-31"));
+                        pcaDates.add(Pair.with("1970-12-31", "2000-12-31"));
+                        pcaDates.add(Pair.with("1980-12-31", "2010-12-31"));
+                        pcaDates.add(Pair.with("1990-12-31", "2020-12-31"));*/ 
                         pcaDates.add(Pair.with(lowerBaseline, upperBaseline));
                         
                         for (Pair<String, String> pcaDate : pcaDates) {
@@ -179,7 +232,7 @@ public class Test_fullQ {
                                         }
                                         
                                         // Full Harmonic
-                                        if (true) {
+                                        if (false) {
                                             String finalOutput;
                                             if (halfPca) {
                                                 finalOutput = "Results/NewFinal_global/" + 

@@ -104,6 +104,7 @@ public class CalculateHarmonic {
             stationSd[i] =  Math.sqrt(currStation.BaselineVariance);
             stationList.add(String.valueOf(currStation.StationId));
         }
+        
         return Process(k, l, lats, lons, stationValue, stationMean, stationSd, stationList);
     }
         

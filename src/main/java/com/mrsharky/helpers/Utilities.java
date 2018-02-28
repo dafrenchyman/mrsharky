@@ -21,6 +21,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
@@ -32,7 +33,6 @@ import org.apache.commons.math3.linear.ArrayFieldVector;
 import org.apache.commons.math3.linear.FieldMatrix;
 import org.apache.commons.math3.linear.FieldVector;
 import org.apache.commons.math3.linear.RealVector;
-import org.apache.spark.sql.SparkSession;
 
 /**
  *
@@ -95,6 +95,38 @@ public class Utilities {
             d[i] = start + step*i;
         }
         return d;
+    }
+    
+    public static double[] randomLatitudeRadians(int num) {
+        double[] ret = new double[num];
+        for (int i = 0; i < num; i++) {
+            ret[i] = Math.random()*Math.PI - Math.PI/2.0;
+        }
+        return ret;
+    }
+    
+    public static double[] randomLongitudeRadians(int num) {
+        double[] ret = new double[num];
+        for (int i = 0; i < num; i++) {
+            ret[i] = Math.random()*2.0*Math.PI - Math.PI;
+        }
+        return ret;
+    }
+    
+    public static double[] randomLatitudeRadians(int num, Random rand) {
+        double[] ret = new double[num];
+        for (int i = 0; i < num; i++) {
+            ret[i] = rand.nextDouble()*Math.PI - Math.PI/2.0;
+        }
+        return ret;
+    }
+    
+    public static double[] randomLongitudeRadians(int num, Random rand) {
+        double[] ret = new double[num];
+        for (int i = 0; i < num; i++) {
+            ret[i] = rand.nextDouble()*2.0*Math.PI - Math.PI;
+        }
+        return ret;
     }
     
     public static RealVector CosineOfVectorValues (RealVector vec) {
@@ -399,12 +431,13 @@ public class Utilities {
         for (int i = 0; i < lon.length; i++) {
             newLon[i] = LongitudeToRadians(lon[i]);
         }
-        return LatitudeToRadians(newLon);
+        return newLon;
     }
     
     public static double LongitudeToRadians(double lon) {
-        if (lon > 180) {
-            lon = lon -360;
+        double newLon = lon;
+        if (newLon > 180) {
+            newLon = newLon -360;
         }
         return LatitudeToRadians(lon);
     }

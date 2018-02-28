@@ -241,6 +241,28 @@ public class DoubleArray {
         }
         return ret;
     }
+    
+    public static double[][] cbind(double[] vec1, double[] vec2) throws Exception {
+        if (vec1.length != vec2.length) {
+            throw new Exception("Arrays must have same length");
+        }
+        double[][] ret = new double [vec1.length][2];
+        for (int i = 0; i < vec1.length; i++) {
+            ret[i][0] = vec1[i];
+            ret[i][1] = vec2[i];
+        }
+        return ret;
+    }
+    
+    public static double[][] transpose(double[][] mat) {
+        double[][] ret = new double[mat[0].length][mat.length];
+        for (int i = 0; i < mat.length; i++) {
+            for (int j = 0; j < mat[0].length; j++) {
+                ret[j][i] = mat[i][j];
+            }
+        }
+        return ret;
+    }
 
     
 

@@ -78,7 +78,7 @@ public class GhcnV3_NearestLocationsTest {
                             "--destination \""+ destination + "\"";
                     String[] arguments = args.split(" ");
 
-                    GhcnV3_NearestLocations.main(arguments);        
+                    //GhcnV3_NearestLocations.main(arguments);        
                 }
             }
             
@@ -105,7 +105,7 @@ public class GhcnV3_NearestLocationsTest {
                             "--destination \""+ destination + "\"";
                     String[] arguments = args.split(" ");
 
-                    GhcnV3_NearestLocationsNoDups.main(arguments);        
+                    //GhcnV3_NearestLocationsNoDups.main(arguments);        
                 }
             }
         }

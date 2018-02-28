@@ -12,7 +12,16 @@ import org.apache.commons.math3.complex.Complex;
 import static com.mrsharky.helpers.Utilities.linspace;
 import com.mrsharky.helpers.DoubleArray;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.javatuples.Pair;
+import org.javatuples.Triplet;
 
 /**
  *
@@ -21,6 +30,11 @@ import org.javatuples.Pair;
 public class InvDiscreteSphericalTransform implements Serializable {
     
     private final SphericalHarmonic _spectral;
+    private boolean _multiThreaded = false;
+    
+    public void SetMultiThreading(boolean multi) {
+        _multiThreaded = multi;
+    }
     
     /**
      * Constructor - Using compressed spectral data
@@ -66,16 +80,17 @@ public class InvDiscreteSphericalTransform implements Serializable {
         return returnValue;
     }
     
-    
     private static double[] LatPointsGaussianQuadrature(int M) throws Exception {
         LegendreGausWeights lgw = new LegendreGausWeights(M,-1,1);
         double[] legZerosM = lgw.GetValues();
-        double[] legZerosRad = DoubleArray.Add(DoubleArray.ArcSin(legZerosM), (Math.PI/2.0));
+        double[] legZerosRad = DoubleArray.ArcSin(legZerosM);
         return legZerosRad;
     }
     
     private static double[] LonPoints(int N) {
-        return DoubleArray.Multiply(linspace(1.0,N,N), 2*Math.PI/N);
+        double lonPoints[] = DoubleArray.Multiply(linspace(1.0,N,N), 2*Math.PI/N);
+        lonPoints = DoubleArray.Add(lonPoints, -Math.PI);
+        return lonPoints;
     }
     
     /**
@@ -103,14 +118,96 @@ public class InvDiscreteSphericalTransform implements Serializable {
         return newValues;
     }
     
+    //private Map<Pair<Integer, double[]>, SphericalAssociatedLegendrePolynomials> _p_k_l;
+    
     /**
      * Process arbitrary points
-     * @param latPoints Latitude values in radian
-     * @param lonPoints Longitude values in radian
+     * @param latPoints Latitude values in radian (-pi/2, pi/2)
+     * @param lonPoints Longitude values in radian (-pi, pi)
      * @return Spatial values for given points
      * @throws Exception 
      */
     public double[] ProcessPoints(double[] latPoints, double[] lonPoints) throws Exception {
+        
+        // Check the point counts are ok
+        if (latPoints.length != lonPoints.length) {
+            throw new Exception("number of latPoints and number of lonPoints should be the same");
+        }
+        
+        double[] latPoints_c = new double[latPoints.length];
+        double[] lonPoints_c = new double[lonPoints.length];
+        
+        // Check lat/lon points are valid
+        for (int i = 0; i < latPoints.length; i++) {
+            double currLat = latPoints[i];
+            double currLon = lonPoints[i];
+            if (currLat < -Math.PI/2.0 -(10e-10)  || currLat > Math.PI/2.0 +(10e-10)) {
+                throw new Exception("Lat points need to be between -pi/2 & pi/2");
+            }
+            
+            if (currLon < -Math.PI -(10e-10) || currLon > Math.PI + (10e-10) ) {
+                throw new Exception("Lon points need to be between -pi & pi");
+            }
+            
+            // Adjust lat so its in ranges 0 < lat < pi 
+            latPoints_c[i] = currLat + Math.PI/2.0;
+            
+            // Adjust lon so its in ranges 0 < lon < 2pi
+            lonPoints_c[i] = currLon + Math.PI;
+        }
+        
+        
+        double[] DATAREBUILT = new double[latPoints_c.length];
+        
+        if (_multiThreaded) {
+            DATAREBUILT = ProcessPointsMultiThreaded(latPoints_c, lonPoints_c);
+        } else { 
+            Complex[][] SPECTRA = _spectral.GetFullSpectral();
+            int Q = SPECTRA.length-1;
+
+            double[] phi = DoubleArray.Cos(latPoints_c);
+            SphericalAssociatedLegendrePolynomials P_k_l = new SphericalAssociatedLegendrePolynomials(Q,phi);
+            double[] theta = lonPoints_c;
+            Complex[][] expHelp = this.ExponentialHelper(Q, theta);
+
+            for (int k = 0; k <= Q; k++) {
+                for (int l = 0; l <= k; l++) {
+                    double oscil = Math.pow(-1, l);
+                    double[] pkl = P_k_l.GetAsDouble(k, l);
+                    Complex[] thetaExp  = ComplexArray.GetRow(expHelp, l);
+                    Complex   currX     = SPECTRA[k][l+Q]; 
+                    Complex[] currY     = ComplexArray.Multiply(pkl, thetaExp);
+                    Complex[] currSum   = ComplexArray.Multiply(currY, currX);
+
+                    // If it's not the l=0, then generate both the +l & -l parts and add them togethar at the same time
+                    if (l != 0) {
+                        Complex   currXConj   = SPECTRA[k][Q-l];
+                        Complex[] currYConj   = ComplexArray.Multiply(ComplexArray.Conjugate(currY),oscil);
+                        Complex[] currSumConj = ComplexArray.Multiply(currYConj, currXConj);
+                        currSum = ComplexArray.Add(currSum, currSumConj);
+                    }
+                    DATAREBUILT = DoubleArray.Add(DATAREBUILT, ComplexArray.Real(currSum));
+                }
+            }
+        }
+        return DATAREBUILT;
+    }
+    
+    
+    public class DataRebuilt {
+        private double[] _DATAREBUILT;
+        public DataRebuilt(int size) {
+            _DATAREBUILT = new double[size];
+        }
+
+        public synchronized void addValues (double[] newSum) throws Exception {
+            _DATAREBUILT = DoubleArray.Add(_DATAREBUILT, newSum);
+        }
+        
+        public double[] getValue(){ return _DATAREBUILT; }
+    }
+    
+    public double[] ProcessPointsMultiThreaded(double[] latPoints, double[] lonPoints) throws Exception {
         if (latPoints.length != lonPoints.length) {
             throw new Exception("number of latPoints and number of lonPoints should be the same");
         }
@@ -121,29 +218,52 @@ public class InvDiscreteSphericalTransform implements Serializable {
         SphericalAssociatedLegendrePolynomials P_k_l = new SphericalAssociatedLegendrePolynomials(Q,phi);
         double[] theta = lonPoints;
         Complex[][] expHelp = this.ExponentialHelper(Q, theta);
-        double[] DATAREBUILT = new double[latPoints.length];
+        DataRebuilt rebuiltData = new DataRebuilt(latPoints.length);
         
+        int threads = Runtime.getRuntime().availableProcessors();
+        //threads = 1;
+        ExecutorService service = Executors.newFixedThreadPool(threads);
+        List<Future<Void>> futures = new ArrayList<Future<Void>>();
+
         for (int k = 0; k <= Q; k++) {
             for (int l = 0; l <= k; l++) {
-                double oscil = Math.pow(-1, l);
-                double[] pkl = P_k_l.GetAsDouble(k, l);
-                Complex[] thetaExp  = ComplexArray.GetRow(expHelp, l);
-                Complex   currX     = SPECTRA[k][l+Q]; 
-                Complex[] currY     = ComplexArray.Multiply(pkl, thetaExp);
-                Complex[] currSum   = ComplexArray.Multiply(currY, currX);
-                
-                // If it's not the l=0, then generate both the +l & -l parts and add them togethar at the same time
-                if (l != 0) {
-                    Complex   currXConj   = SPECTRA[k][Q-l];
-                    Complex[] currYConj   = ComplexArray.Multiply(ComplexArray.Conjugate(currY),oscil);
-                    Complex[] currSumConj = ComplexArray.Multiply(currYConj, currXConj);
-                    currSum = ComplexArray.Add(currSum, currSumConj);
-                }
-                DATAREBUILT = DoubleArray.Add(DATAREBUILT, ComplexArray.Real(currSum));
+
+                final int k_f = k;
+                final int l_f = l;
+
+                // Process the spherical harmonics multi-threaded
+                Callable<Void> callable = new Callable<Void>() {
+                    public Void call() throws Exception {
+
+                        double oscil = Math.pow(-1, l_f);
+                        double[] pkl = P_k_l.GetAsDouble(k_f, l_f);
+                        Complex[] thetaExp  = ComplexArray.GetRow(expHelp, l_f);
+                        Complex   currX     = SPECTRA[k_f][l_f+Q]; 
+                        Complex[] currY     = ComplexArray.Multiply(pkl, thetaExp);
+                        Complex[] currSum   = ComplexArray.Multiply(currY, currX);
+
+                        // If it's not the l=0, then generate both the +l & -l parts and add them togethar at the same time
+                        if (l_f != 0) {
+                            Complex   currXConj   = SPECTRA[k_f][Q-l_f];
+                            Complex[] currYConj   = ComplexArray.Multiply(ComplexArray.Conjugate(currY),oscil);
+                            Complex[] currSumConj = ComplexArray.Multiply(currYConj, currXConj);
+                            currSum = ComplexArray.Add(currSum, currSumConj);
+                        }
+
+                        rebuiltData.addValues(ComplexArray.Real(currSum));
+                        return null;
+                    }
+                };
+                futures.add(service.submit(callable));
             }
         }
-        return DATAREBUILT;
+
+        service.shutdown();
+        service.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        return rebuiltData.getValue();
     }
+    
+    
     
     public static double[][] GenerateSinCosData (int xSize, int ySize) {
         double xLength = 4*Math.PI;

@@ -203,7 +203,7 @@ public class Shtns {
         int mmax = 3;		// maximum order of spherical harmonics
         int mres = 1;		// periodicity in phi (1 for full-sphere, 2 for half the sphere, 3 for 1/3, etc...)
         int nlat = 32;		// number of points in the latitude direction  (constraint: nlat >= lmax+1)
-        int nphi = 10;        
+        int nphi = 3;           // constraint Nphi > 2*Mmax
 
         LegendreGausWeights lgw = new LegendreGausWeights(nlat,-1,1);
         

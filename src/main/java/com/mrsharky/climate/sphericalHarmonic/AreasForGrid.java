@@ -30,8 +30,8 @@ public class AreasForGrid {
     }
     
     public AreasForGrid(int latCount, int lonCount, double radius) throws Exception {
-        _latitude  = RadiansToLatitude(DoubleArray.Add(GetLatitudeCoordinates(latCount), -(Math.PI/2.0)));
-        _longitude = RadiansToLongitude(DoubleArray.Add(GetLongitudeCoordinates(lonCount), - Math.PI));
+        _latitude  = RadiansToLatitude(GetLatitudeCoordinates(latCount));
+        _longitude = RadiansToLongitude(GetLongitudeCoordinates(lonCount));
         _area = ProcessLatLon (_latitude, _longitude, radius);
     }
     

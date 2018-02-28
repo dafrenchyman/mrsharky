@@ -9,6 +9,10 @@
 package com.mrsharky.stations.netcdf;
 
 import com.mrsharky.dataprocessor.NetCdfLoader;
+import com.mrsharky.discreteSphericalTransform.DiscreteSphericalTransform;
+import com.mrsharky.discreteSphericalTransform.InvDiscreteSphericalTransform;
+import com.mrsharky.discreteSphericalTransform.SphericalHarmonic;
+import com.mrsharky.helpers.DoubleArray;
 import com.mrsharky.stations.ghcn.GhcnV3_Helpers.QcType;
 import java.io.Serializable;
 import java.sql.Date;
@@ -35,21 +39,24 @@ import org.apache.spark.sql.types.StructType;
 public class NetCdf_MonthlyDataLoader implements Serializable, FlatMapFunction<Iterator<java.util.Date>, Row> {
 
     private Map<java.util.Date, double[][]> _allData;
-    private double[] _lats;
-    private double[] _lons;
+    private final double[] _lats;
+    private final double[] _lons;
+    private int _q;
     private final List<Long> _stationIds;
     
-    public NetCdf_MonthlyDataLoader (Map<java.util.Date, double[][]> allData, double[] lats, double[] lons) throws Exception {
+    public NetCdf_MonthlyDataLoader (Map<java.util.Date, double[][]> allData, double[] lats, double[] lons, int q) throws Exception {
         _allData = allData;
         _lats = lats;
         _lons = lons;
+        _q = q;
         _stationIds = new ArrayList<Long>();
     }
     
-    public NetCdf_MonthlyDataLoader (Map<java.util.Date, double[][]> allData, double[] lats, double[] lons, List<Long> stations) throws Exception {
+    public NetCdf_MonthlyDataLoader (Map<java.util.Date, double[][]> allData, double[] lats, double[] lons, List<Long> stations, int q) throws Exception {
         _allData = allData;
         _lats = lats;
         _lons = lons;
+        _q = q;
         _stationIds = stations;
     }
 
@@ -78,47 +85,81 @@ public class NetCdf_MonthlyDataLoader implements Serializable, FlatMapFunction<I
         while (dates.hasNext()) {
             rowsIn++;
             java.util.Date currDate = dates.next();
+            //if (currDate.getYear() +1900 != 1970) { continue; }
+            System.out.println("Processing: " + rowsIn + ", "+ currDate + ", " + _lats.length);
         
-            double[][] currData = _allData.get(currDate); 
-            long stationCounter = 0;
-            System.out.println("Processing: " + currDate);
+            double[][] currData = _allData.get(currDate);
             
-            for (int i = 0; i < _lats.length; i++) {
-                double latitude = _lats[i];
-                for (int j = 0; j < _lons.length; j++) {
-                    double longitude = _lons[j];
-                    Double currValue = currData[i][j];
-                    stationCounter++;
-                    
-                    long stationId = stationCounter;
-                    
-                    if (_stationIds.isEmpty() || _stationIds.contains(stationId)) {
-                        int year = currDate.getYear()+1900;
-                        int month = currDate.getMonth() + 1;
-                        int day = currDate.getDate();
-                        String currDateS = StringUtils.leftPad(Integer.toString(year), 4, "0") + "-" + StringUtils.leftPad(Integer.toString(month), 2, "0") +"-" +
-                                StringUtils.leftPad(Integer.toString(day), 2, "0");
+            DiscreteSphericalTransform dst = new DiscreteSphericalTransform(currData, _q, true);
+            SphericalHarmonic sh = dst.GetSpectra();
+            
+            InvDiscreteSphericalTransform idst = new InvDiscreteSphericalTransform(sh);
+            
+            double[] values = idst.ProcessPoints(_lats, _lons);
+            
+            // try to rebuild
+            if (false) {
+                // Print the predicted values
+                System.out.println("Predicted Lat");
+                DoubleArray.Print(_lats);
+                
+                System.out.println("Predicted Lon");
+                DoubleArray.Print(_lons);
+                
+                System.out.println("Values");
+                DoubleArray.Print(values);
+                
+                InvDiscreteSphericalTransform idstr = new InvDiscreteSphericalTransform(sh);
+                double[][] rebuilt = idstr.ProcessGaussianDoubleArray(dst.GetM(), dst.GetN());
+                double[][] diff = DoubleArray.Add(currData, DoubleArray.Multiply(rebuilt, -1.0));
 
-                        Date date = java.sql.Date.valueOf(currDateS);
+                System.out.println("Lat");
+                DoubleArray.Print(dst.GetLatitudeCoordinates());
+                
+                System.out.println("Lon");
+                DoubleArray.Print(dst.GetLongitudeCoordinates());
+                
+                System.out.println("Original");
+                DoubleArray.Print(currData);
+                
+                System.out.println("Rebuilt");
+                DoubleArray.Print(rebuilt);
+                
+                System.out.println("Diff");
+                DoubleArray.Print(diff);
+                
+                
+            }
+            
+            
+            for (int i = 0; i < values.length; i++) {
+                
+                long stationId = i;
 
-                        String currDmFlag = null;                     
-                        String currQcFlag = null;
-                        String currDsFlag = null;
-                        String element = null;
+                int year = currDate.getYear()+1900;
+                int month = currDate.getMonth() + 1;
+                int day = currDate.getDate();
+                String currDateS = StringUtils.leftPad(Integer.toString(year), 4, "0") + "-" + StringUtils.leftPad(Integer.toString(month), 2, "0") +"-" +
+                        StringUtils.leftPad(Integer.toString(day), 2, "0");
 
-                        // Save everything to the list
-                        List<Object> values = new ArrayList<Object>();
-                        values.add(stationId);
-                        values.add(element);
-                        values.add(date);
-                        values.add(currValue);
-                        values.add(currDmFlag);
-                        values.add(currQcFlag);
-                        values.add(currDsFlag);
-                        rows.add(RowFactory.create(values.toArray()));
-                        rowsOut++;
-                    } 
-                }
+                Date date = java.sql.Date.valueOf(currDateS);
+
+                String currDmFlag = null;                     
+                String currQcFlag = null;
+                String currDsFlag = null;
+                String element = null;
+
+                // Save everything to the list
+                List<Object> currValues = new ArrayList<Object>();
+                currValues.add(stationId);
+                currValues.add(element);
+                currValues.add(date);
+                currValues.add(values[i]);
+                currValues.add(currDmFlag);
+                currValues.add(currQcFlag);
+                currValues.add(currDsFlag);
+                rows.add(RowFactory.create(currValues.toArray()));
+                rowsOut++;
             }
         }
         System.out.println("Finished - " + this.getClass().getName() + " (rowsIn: " + rowsIn + ", rowsOut: " + rowsOut + ")");

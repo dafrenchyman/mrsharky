@@ -33,7 +33,7 @@ import org.javatuples.Pair;
 public class SphericalHarmonics_OptimalQ_MultiThreaded_Compare {
     
     public static void main(String args[]) throws Exception {   
-        SphericalHarmonics_OptimalQ_InputParser inputParser = new SphericalHarmonics_OptimalQ_InputParser(args);
+        SphericalHarmonics_OptimalQ_InputParser inputParser = new SphericalHarmonics_OptimalQ_InputParser(args, SphericalHarmonics_OptimalQ_MultiThreaded_Compare.class.getName());
         if (inputParser.InputsCorrect()) {
             int qLower = inputParser.qLower;
             int qUpper = inputParser.qUpper;

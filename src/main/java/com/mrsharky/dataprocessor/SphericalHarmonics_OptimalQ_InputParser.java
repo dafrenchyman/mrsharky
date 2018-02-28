@@ -5,27 +5,20 @@
  */
 package com.mrsharky.dataprocessor;
 
+import com.mrsharky.helpers.InputParser_Abstract;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.GnuParser;
-import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 
 /**
  *
  * @author mrsharky
  */
-public class SphericalHarmonics_OptimalQ_InputParser {
-    
-    private boolean _inputsCorrect;
-    
+public class SphericalHarmonics_OptimalQ_InputParser extends InputParser_Abstract {
+        
     public String input;
     public String variable;
     public String time;
@@ -36,56 +29,31 @@ public class SphericalHarmonics_OptimalQ_InputParser {
     public int qUpper;
     public boolean normalize;
     
-    public boolean InputsCorrect() {
-        return this._inputsCorrect;
-    }
     
-    public SphericalHarmonics_OptimalQ_InputParser(String[] args) {
+    public SphericalHarmonics_OptimalQ_InputParser(String[] args, String className) {
+        super(args, className);
+    }
         
-        _inputsCorrect = false;
-       
-        // create the command line parser
-        CommandLineParser parser = new GnuParser();
+    @Override
+    protected void ProcessInputs(CommandLine line) throws java.text.ParseException {               
+        
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
-        Options options = GenerateOptions();
-           
-        try {
-            // parse the command line arguments
-            CommandLine line = parser.parse( options, args );
-            
-            if (line.hasOption("help")) {
-                // automatically generate the help statement
-                HelpFormatter formatter = new HelpFormatter();
-                formatter.printHelp( "Resolve Report 1 Help", options );
-                _inputsCorrect = false;
-            } else {
-                DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-                
-                // Required Variables
-                input = line.getOptionValue("input");
-                variable = line.getOptionValue("variable");
-                time = line.getOptionValue("time");           
-                qLower = Integer.valueOf(line.getOptionValue("qlower"));
-                qUpper = Integer.valueOf(line.getOptionValue("qupper"));
-                lowerDateCutoff = format.parse(line.getOptionValue("lowerbaseline"));
-                upperDateCutoff = format.parse(line.getOptionValue("upperbaseline"));
-                normalize = line.hasOption("normalize") ? true : false;
-                _inputsCorrect = true;
-            }
-        } catch( ParseException exp ) {
-            // oops, something went wrong
-            System.err.println( "Parsing failed.  Reason: " + exp.getMessage() );
-            
-            // automatically generate the help statement
-            HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp( "Resolve Report 1 Help", options );
-            _inputsCorrect = false;
-        } catch (java.text.ParseException ex) {
-            Logger.getLogger(SphericalHarmonics_OptimalQ_InputParser.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        // Required Variables
+        input = line.getOptionValue("input");
+        variable = line.getOptionValue("variable");
+        time = line.getOptionValue("time");           
+        qLower = Integer.valueOf(line.getOptionValue("qlower"));
+        qUpper = Integer.valueOf(line.getOptionValue("qupper"));
+        lowerDateCutoff = format.parse(line.getOptionValue("lowerbaseline"));
+        upperDateCutoff = format.parse(line.getOptionValue("upperbaseline"));
+        normalize = line.hasOption("normalize");
+        _inputsCorrect = true;
+
     }
     
-    private Options GenerateOptions() {
+    @Override
+    protected Options GenerateOptions() {
         // create the Options
         Options options = new Options();
         

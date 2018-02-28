@@ -304,6 +304,16 @@ public class SphericalHarmonic implements Serializable {
         return uncompressedSpectral;
     }
     
+    public Complex[][] GetHalfSpectral() throws Exception {
+        Complex[][] uncompressedSpectral = ComplexArray.CreateComplex(_q+1,_q+1);
+        for (int k = 0; k <= _q; k++) {
+            for (int l = 0; l <= k; l++) {
+                uncompressedSpectral[k][l] = GetHarmonic(k, l);
+            }
+        }
+        return uncompressedSpectral;
+    }
+    
     public Complex[] GetHalfCompressedSpectra() {
         Complex[] newData = new Complex[_data.length];
         for (int i = 0; i < newData.length; i++) {
@@ -327,7 +337,7 @@ public class SphericalHarmonic implements Serializable {
         return newValue;
     }
     
-    public void SetHarmonic(int k, int l, Complex value) throws Exception {
+    public synchronized void SetHarmonic(int k, int l, Complex value) throws Exception {
         Complex newValue = new Complex(value.getReal(), value.getImaginary());
         if (l < 0) {
             double oscil = Math.pow(-1, l);

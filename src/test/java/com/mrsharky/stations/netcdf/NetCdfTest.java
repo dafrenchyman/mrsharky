@@ -78,7 +78,7 @@ public class NetCdfTest {
                                 "--minDistance \"" + minDistance + "\"";
                         String[] arguments = args.split(" ");
 
-                        NetCdf.main(arguments);
+                        //NetCdf.main(arguments);
                     }
                 }
             }

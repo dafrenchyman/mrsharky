@@ -66,7 +66,7 @@ public class SphericalHarmonics_OptimalQTest {
         String[] arguments = args.split(" ");
         //SphericalHarmonics_OptimalQ.main(arguments);
         
-        SphericalHarmonics_OptimalQ_MultiThreaded_Compare.main(arguments);
+        //SphericalHarmonics_OptimalQ_MultiThreaded_Compare.main(arguments);
     }
     
 }

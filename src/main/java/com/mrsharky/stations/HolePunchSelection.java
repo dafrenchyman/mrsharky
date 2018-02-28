@@ -32,7 +32,6 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.javatuples.Pair;
-import org.javatuples.Triplet;
 
 /**
  * 
@@ -53,8 +52,11 @@ public abstract class HolePunchSelection {
     
     public HolePunchSelection(String lowerBaseline, String upperBaseline, double minDistance, boolean createSpark) throws Exception {
         if (createSpark) {
+            int threads = Runtime.getRuntime().availableProcessors();
+            //threads = 1;
+            //threads = (int) Math.max(1, threads-1);
             sparkSetup = new SetupSparkTest();
-            sparkSetup.setup(2);
+            sparkSetup.setup(threads);
         }
         _spark = CreateDefaultSparkSession(this.getClass().getName());
         _lowerBaseline = lowerBaseline;

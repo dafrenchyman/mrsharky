@@ -83,7 +83,7 @@ public class GhcnV3Test {
                             "--destination \"" + "Results/NewPoints/" + pointFilename + "\"";
                     String[] arguments = args.split(" ");
 
-                    GhcnV3.main(arguments);
+                    //GhcnV3.main(arguments);
                 }
             }
         }

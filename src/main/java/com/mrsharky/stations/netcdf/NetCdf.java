@@ -44,13 +44,13 @@ public class NetCdf extends HolePunchSelection {
         JavaRDD<java.util.Date> rddDates = jsc.parallelize(dates, 12);
         
         // Load the Inventory Data
-        NetCdf_InventoryDataLoader idl = new NetCdf_InventoryDataLoader(loader);
+        NetCdf_InventoryDataLoader_old idl = new NetCdf_InventoryDataLoader_old(loader);
         Dataset<Row> InventoryDataset = _spark.createDataFrame(idl.GetData(), idl.GetSchema());
         InventoryDataset.persist(StorageLevel.MEMORY_ONLY());
         InventoryDataset.createOrReplaceTempView("InventoryDataset");
 
         // Load the Monthly Data
-        NetCdf_MonthlyDataLoader mdl = new NetCdf_MonthlyDataLoader(allData, lats, lons);
+        NetCdf_MonthlyDataLoader mdl = new NetCdf_MonthlyDataLoader(allData, lats, lons, 102);
         JavaRDD<Row> javaRddData = rddDates.mapPartitions(s -> mdl.call(s));
         Dataset<Row> MonthlyDataset = _spark.createDataFrame(javaRddData, mdl.GetSchema());
         MonthlyDataset.persist(StorageLevel.DISK_ONLY());

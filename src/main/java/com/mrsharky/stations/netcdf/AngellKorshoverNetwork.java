@@ -155,5 +155,26 @@ public class AngellKorshoverNetwork {
             -67.4,
             -90
         };
+        
+        for (int i = 0; i < _lats.length; i++) {
+            if (_lats[i] < -90) {
+                _lats[i] = _lats[i] + 180;
+            }
+            
+            if (_lats[i] > 90) {
+                _lats[i] = _lats[i] - 180;
+            }
+            
+            if (_lons[i] < -180) {
+                _lons[i] = _lons[i] + 360;
+            }
+            
+            if (_lons[i] > 180) {
+                _lons[i] = _lons[i] - 360;
+            }
+            
+        }
+        
+        
     }
 }

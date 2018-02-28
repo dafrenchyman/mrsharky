@@ -59,7 +59,7 @@ public class GridBoxVarianceTest {
                 "--varianceNumYears \"" + varianceNumYears + "\" " +
                 "--time \"" + time + "\"";
         String[] arguments = args.split(" ");
-        GridBoxVariance.main(arguments);
+        //GridBoxVariance.main(arguments);
     }
     
 }

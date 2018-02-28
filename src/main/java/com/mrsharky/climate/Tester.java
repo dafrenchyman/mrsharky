@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mrsharky.climate.nearestNeighbor;
+package com.mrsharky.climate;
 
+import com.mrsharky.climate.nearestNeighbor.NetCdfGlobalAverage;
 import com.mrsharky.climate.sphericalHarmonic.ClimateFromStations_Global;
 import com.mrsharky.dataprocessor.SphericalHarmonics_LongTermStations;
 import static com.mrsharky.helpers.Utilities.recursiveDelete;

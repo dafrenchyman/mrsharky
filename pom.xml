@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.mrsharky</groupId>
-    <artifactId>DataProcessor</artifactId>
+    <artifactId>mrsharky</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <properties>
@@ -10,13 +10,13 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
-    <repositories>
+    <!--repositories>
         <repository>
             <id>unidata-releases</id>
             <name>Unidata Releases</name>
             <url>https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases/</url>
         </repository>
-    </repositories>
+    </repositories-->
     <dependencies>
         <!-- Spark Dependencies -->
         <dependency>
@@ -86,6 +86,14 @@
             <artifactId>netcdf4</artifactId>
             <version>4.5.5</version>
         </dependency>
+        
+        <!-- Google Guava -->
+        <!--dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>23.0</version>
+        </dependency-->
+        
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>

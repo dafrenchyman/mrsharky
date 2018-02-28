@@ -64,7 +64,7 @@ public class Climate_PcaStationsTest {
 
             String[] arguments = args.split(" ");
 
-            Climate_PcaStations.main(arguments);
+            //Climate_PcaStations.main(arguments);
         }
         
         // regular
@@ -79,7 +79,7 @@ public class Climate_PcaStationsTest {
                     "--station \"" + stationData + "\"";
 
             String[] arguments = args.split(" ");
-            ClimateFromStations_Global.main(arguments);
+            //ClimateFromStations_Global.main(arguments);
         }
     }
 

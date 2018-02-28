@@ -33,112 +33,59 @@ public class NetCdf_InventoryDataLoader {
         return _stationList;
     }
     
-    public NetCdf_InventoryDataLoader (NetCdfLoader loader, double[] stnLats, double[] stnLons) throws Exception {
+    public NetCdf_InventoryDataLoader (double[] stnLats, double[] stnLons) throws Exception {
         
         if (stnLats.length != stnLons.length) {
             throw new Exception("stnLats & stnLons must have same length");
         }
         
+        _data = new ArrayList<Row>();
         _stationList= new ArrayList<Long>();
-        double[] lats = loader.GetLats();
-        double[] lons = loader.GetLons();
-        List<Triplet<Long, Double, Double>> allStations = new ArrayList<Triplet<Long, Double, Double>>();
-        
-        long stationCounter = 0;
-        for (int i = 0; i < lats.length; i++) {
-            double latitude = lats[i];
-            for (int j = 0; j < lons.length; j++) {
-                double longitude = lons[j];
-                stationCounter++;
-                allStations.add(Triplet.with(stationCounter, latitude, longitude));
-            }
-        }
         
         for (int i = 0; i < stnLats.length; i++) {
-            // Find nearest stationId
-            double lat1 = stnLats[i];
-            double lon1 = stnLons[i]; 
-            double bestDistance = Double.MAX_VALUE;
-            long bestStationId = -1;
-            for (int j = 0; j < allStations.size(); j++) {
-                Triplet<Long, Double, Double> currStation = allStations.get(j);
-                long stationId = currStation.getValue0();
-                double lat2 = currStation.getValue1();
-                double lon2 = currStation.getValue2();
-                double currDistance = HaversineDistance(lat1, lat2, lon1, lon2, 0.0, 0.0)/1000.0;
-                if (currDistance < bestDistance) {
-                    bestDistance = currDistance;
-                    bestStationId = stationId;
-                }
-            }
-            _stationList.add(bestStationId);
-        }
-        ProcessStations(loader);
-    }
-    
-    private void ProcessStations(NetCdfLoader loader) {
-        _data = new ArrayList<Row>();
-        
-        double[] lats = loader.GetLats();
-        double[] lons = loader.GetLons();
-        
-        long stationCounter = 0;
-        for (int i = 0; i < lats.length; i++) {
-            double latitude = lats[i];
-            for (int j = 0; j < lons.length; j++) {
-                double longitude = lons[j];
-                stationCounter++;
-                
-                // Get the station data
-                // Get all the values
-                long stationId   = stationCounter;
-                
-                if (_stationList.isEmpty() || _stationList.contains(stationId)) {
-                    Double stnElev   = null;
-                    String name = "Grid point " + stationId;
+            long stationId = i;
+            _stationList.add(stationId);
+            double latitude = stnLats[i];
+            double longitude = stnLons[i];
+ 
+            Double stnElev   = null;
+            String name = "Grid point " + stationId;
+            
+            // The following fields can be completely missing
+            Integer grElev = null;
+            String popCls = null;
+            Integer popSiz = null;
+            String topo = null;
+            String stVeg = null;
+            String stLoc = null;
+            Integer ocnDis = null;
+            Boolean airStn = null;
+            Integer townDis = null;
+            String grVeg = null;
+            String popCss = null;
 
-                    // The following fields can be completely missing
-                    Integer grElev = null;
-                    String popCls = null;
-                    Integer popSiz = null;
-                    String topo = null;
-                    String stVeg = null;
-                    String stLoc = null;
-                    Integer ocnDis = null;
-                    Boolean airStn = null;
-                    Integer townDis = null;
-                    String grVeg = null;
-                    String popCss = null;
-
-                    // Set all the values
-                    List<Object> values = new ArrayList<Object>();
-                    values.add(stationId);
-                    values.add(latitude);
-                    values.add(longitude);
-                    values.add(stnElev);
-                    values.add(name);
-                    values.add(grElev);
-                    values.add(popCls);
-                    values.add(popSiz);
-                    values.add(topo);
-                    values.add(stVeg);
-                    values.add(stLoc);
-                    values.add(ocnDis);
-                    values.add(airStn);
-                    values.add(townDis);
-                    values.add(grVeg);
-                    values.add(popCss);
-                    _data.add(RowFactory.create(values.toArray()));
-                }
-            }
+            // Set all the values
+            List<Object> values = new ArrayList<Object>();
+            values.add(stationId);
+            values.add(latitude);
+            values.add(longitude);
+            values.add(stnElev);
+            values.add(name);
+            values.add(grElev);
+            values.add(popCls);
+            values.add(popSiz);
+            values.add(topo);
+            values.add(stVeg);
+            values.add(stLoc);
+            values.add(ocnDis);
+            values.add(airStn);
+            values.add(townDis);
+            values.add(grVeg);
+            values.add(popCss);
+            _data.add(RowFactory.create(values.toArray()));
         }
     }
-    
-    public NetCdf_InventoryDataLoader (NetCdfLoader loader) {
-        _stationList= new ArrayList<Long>();
-        ProcessStations(loader);
-    }
-    
+   
     public List<Row> GetData() {
         return _data;
     }

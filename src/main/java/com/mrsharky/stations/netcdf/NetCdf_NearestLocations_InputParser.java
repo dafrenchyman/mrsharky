@@ -31,6 +31,8 @@ public class NetCdf_NearestLocations_InputParser extends InputParser_Abstract {
     public int latCount;
     public int lonCount;
     
+    public int q;
+    
     public NetCdf_NearestLocations_InputParser(String[] args, String className ) throws Exception{
         super(args, className);
     }
@@ -46,6 +48,7 @@ public class NetCdf_NearestLocations_InputParser extends InputParser_Abstract {
         latCount = line.hasOption("latCount") ? Integer.parseInt((line.getOptionValue("latCount"))) : 0;
         lonCount = line.hasOption("lonCount") ? Integer.parseInt((line.getOptionValue("lonCount"))) : 0;
         createSpark = line.hasOption("createSpark");
+        q = Integer.parseInt(line.getOptionValue("q"));
     }
 
     @Override
@@ -62,6 +65,11 @@ public class NetCdf_NearestLocations_InputParser extends InputParser_Abstract {
                 .longOpt("lonCount").hasArg().required(false)
                 .argName("int")
                 .desc("Number of lon locations to use for generating locations (If none given will use Angel-Korshover Network locations)")
+                .build());
+        options.addOption(Option.builder("q")
+                .longOpt("q").hasArg().required(true)
+                .argName("int")
+                .desc("Q truncation value for the conversion to spectral")
                 .build());
         options.addOption(Option.builder("l")
                 .longOpt("lowerBaseline").hasArg().required()

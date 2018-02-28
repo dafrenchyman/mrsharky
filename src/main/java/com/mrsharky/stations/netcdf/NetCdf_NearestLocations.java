@@ -12,6 +12,8 @@ package com.mrsharky.stations.netcdf;
 import com.mrsharky.climate.sphericalHarmonic.AreasForGrid;
 import com.mrsharky.stations.HolePunchSelection;
 import com.mrsharky.dataprocessor.NetCdfLoader;
+import com.mrsharky.helpers.DoubleArray;
+import com.mrsharky.helpers.Utilities;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +34,7 @@ public class NetCdf_NearestLocations extends HolePunchSelection {
     private final boolean _streamMonthly = true;
     
     public NetCdf_NearestLocations(String input, String variable, String time, String lowerBaseline, String upperBaseline
-            , int latCount, int lonCount, String destination, boolean createSpark ) throws Exception {   
+            , int latCount, int lonCount, String destination, boolean createSpark , int q) throws Exception {   
         super(lowerBaseline, upperBaseline, 0.0, createSpark);
         NetCdfLoader loader = new NetCdfLoader(input, variable, time);
         
@@ -67,19 +69,27 @@ public class NetCdf_NearestLocations extends HolePunchSelection {
             lons = akn.GetLons();
         }
         
+        if (false) {
+            DoubleArray.Print(lats);
+            DoubleArray.Print(lons);
+        }
+        
         // Load the Inventory Data
-        NetCdf_InventoryDataLoader idl = new NetCdf_InventoryDataLoader(loader, lats, lons);
+        NetCdf_InventoryDataLoader idl = new NetCdf_InventoryDataLoader(lats, lons);
         Dataset<Row> InventoryDataset = _spark.createDataFrame(idl.GetData(), idl.GetSchema());
         InventoryDataset.persist(StorageLevel.MEMORY_ONLY());
         InventoryDataset.createOrReplaceTempView("InventoryDataset");
+        System.out.println("Inventory Data Loaded: " + InventoryDataset.count());
 
         // Load the Monthly Data
-        NetCdf_MonthlyDataLoader mdl = new NetCdf_MonthlyDataLoader(allData, loader.GetLats(), loader.GetLons(), idl.GetStationList());
+        double[] latsRadians = Utilities.LatitudeToRadians(lats);
+        double[] lonsRadians = Utilities.LongitudeToRadians(lons);
+        NetCdf_MonthlyDataLoader mdl = new NetCdf_MonthlyDataLoader(allData, latsRadians, lonsRadians, idl.GetStationList(), q);
         JavaRDD<Row> javaRddData = rddDates.mapPartitions(s -> mdl.call(s));
         Dataset<Row> MonthlyDataset = _spark.createDataFrame(javaRddData, mdl.GetSchema());
         MonthlyDataset.persist(StorageLevel.DISK_ONLY());
         MonthlyDataset.createOrReplaceTempView("MonthlyDataset");
-        MonthlyDataset.count();
+        System.out.println("Monthly Data Loaded:" + MonthlyDataset.count());
         
         Process(InventoryDataset, MonthlyDataset, 0, destination, false); 
         Close();
@@ -94,7 +104,7 @@ public class NetCdf_NearestLocations extends HolePunchSelection {
         if (parser.InputsCorrect()) {
             NetCdf_NearestLocations netCdf = new NetCdf_NearestLocations(parser.input, parser.variable, parser.time
                     , parser.lowerBaseline, parser.upperBaseline, parser.latCount, parser.lonCount
-                    , parser.output, parser.createSpark);
+                    , parser.output, parser.createSpark, parser.q);
         }
     }
 }

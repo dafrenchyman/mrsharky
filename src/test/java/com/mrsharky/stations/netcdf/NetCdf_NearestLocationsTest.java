@@ -82,7 +82,7 @@ public class NetCdf_NearestLocationsTest {
                                 "--minDistance \"" + minDistance + "\"";
                         String[] arguments = args.split(" ");
 
-                        NetCdf_NearestLocations.main(arguments);
+                        //NetCdf_NearestLocations.main(arguments);
                     }
                 }
             }

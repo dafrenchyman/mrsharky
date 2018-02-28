@@ -13,12 +13,14 @@ import static com.mrsharky.discreteSphericalTransform.DiscreteSphericalTransform
 import static com.mrsharky.discreteSphericalTransform.DiscreteSphericalTransform.GetLongitudeCoordinates;
 import com.mrsharky.discreteSphericalTransform.InvDiscreteSphericalTransform;
 import com.mrsharky.discreteSphericalTransform.SphericalHarmonic;
+import com.mrsharky.helpers.ComplexArray;
 import static com.mrsharky.helpers.Utilities.RadiansToLongitude;
 import com.mrsharky.helpers.DoubleArray;
 import static com.mrsharky.helpers.JblasMatrixHelpers.ApacheMath3ToJblas;
 import com.mrsharky.helpers.Utilities;
 import static com.mrsharky.helpers.Utilities.RadiansToLatitude;
 import com.mrsharky.stations.netcdf.AngellKorshoverNetwork;
+import java.util.Random;
 import org.apache.commons.math3.complex.Complex;
 import org.javatuples.Pair;
 import org.javatuples.Triplet;
@@ -55,6 +57,18 @@ public class CalculateHarmonicTest {
     @After
     public void tearDown() {
     }
+    
+    private static Complex GenerateRandomHarmonic(int l, Random rand) {
+        double realSign = (rand.nextDouble() > 0.75 ? -1.0 : 1.0);
+        double imagSign = (rand.nextDouble() > 0.75 ? -1.0 : 1.0);
+        double real = rand.nextDouble()*realSign;
+        double imag = rand.nextDouble()*imagSign;
+        // No i's on l = 0
+        if (l == 0) {
+            imag = 0.0;
+        }
+        return new Complex(real, imag);
+    }
 
     private static Complex GenerateRandomHarmonic(int l) {
         double realSign = (Math.random() > 0.75 ? -1.0 : 1.0);
@@ -68,12 +82,12 @@ public class CalculateHarmonicTest {
         return new Complex(real, imag);
     }
     
-    @Test
+    //@Test
     public void testNonHarmonicFriendlyPoints() throws Exception {
         System.out.println("Testing: " + Thread.currentThread().getStackTrace()[1].getMethodName());
-        int q = 7;
-        int latNum = 32;
-        int lonNum = 10;
+        int q = 102;
+        int latNum = q+1;
+        int lonNum = q*2;
         
         AreasForGrid areasForGrid = new AreasForGrid(latNum, lonNum, 1.0);
         double[] preLat = Utilities.LatitudeToRadians(areasForGrid.GetLatitude());
@@ -137,8 +151,11 @@ public class CalculateHarmonicTest {
         double originalFirstHarmonicValue = sh.GetHarmonic(0, 0).getReal();
         double rebuiltFirstHarmonicValue  = shRebuilt.GetHarmonic(0, 0).getReal();
         
+        ComplexArray.Print(sh.GetHalfSpectral());
+        ComplexArray.Print(shRebuilt.GetHalfSpectral());
+        
         double ratio = rebuiltFirstHarmonicValue/originalFirstHarmonicValue;
-        if (Math.abs(ratio-1.0) > 0.30 ) {
+        if (Math.abs(ratio-1.0) > 0.10 ) {
             Assert.fail("Error too large between originala and rebuilt");
         }
         
@@ -161,17 +178,18 @@ public class CalculateHarmonicTest {
         System.out.println("Original: " + origValue + ", Rebuilt: " + value);
     }
     
-    @Test
+    //@Test
     public void testIncreasingFirstHarmonic() throws Exception {
         System.out.println("Testing: " + Thread.currentThread().getStackTrace()[1].getMethodName());
         int q = 7;
-        int latNum = 32;
-        int lonNum = 10;
+        int q_trunc = 0;
+        int latNum = q+1;
+        int lonNum = q*2;
         int timePoints = 30;
         
         // Get Lat/Lon & gridbox areas
-        double[] lat = RadiansToLatitude(DoubleArray.Add(GetLatitudeCoordinates(latNum), -(Math.PI/2.0)));
-        double[] lon = RadiansToLongitude(DoubleArray.Add(GetLongitudeCoordinates(lonNum), - Math.PI));
+        double[] lat = RadiansToLatitude(GetLatitudeCoordinates(latNum));
+        double[] lon = RadiansToLongitude(GetLongitudeCoordinates(lonNum));
         AreasForGrid areasForGrid = new AreasForGrid(lat, lon, 1.0);
         double[][] areaFraction = DoubleArray.Multiply(areasForGrid.GetAreas(), 1.0/(Math.PI*4.0));
         
@@ -180,16 +198,22 @@ public class CalculateHarmonicTest {
         double[] origAverage = new double[timePoints];
         for (int i = 0; i < timePoints; i++) {
             SphericalHarmonic sh = new SphericalHarmonic(q);
-            double originalFirstHarmValue = 20.0 + 1.0*i*Math.abs(Math.random());
+            SphericalHarmonic sh_trunc = new SphericalHarmonic(q_trunc);
+            double originalFirstHarmValue = 20.0 + 1.0*Math.pow(i,2);//*Math.abs(Math.random());
             sh.SetHarmonic(0, 0, new Complex(originalFirstHarmValue, 0.0));
+            sh_trunc.SetHarmonic(0, 0, new Complex(originalFirstHarmValue, 0.0));
             for (int k = 1; k <= q; k++) {
                 for (int l = 0; l <= k; l++) {
-                    sh.SetHarmonic(k, l, GenerateRandomHarmonic(l));
+                    Complex randHarm = GenerateRandomHarmonic(l);
+                    sh.SetHarmonic(k, l, randHarm);
+                    if (k <= q_trunc) {
+                        sh_trunc.SetHarmonic(k, l, randHarm);
+                    }
                 }
             }
-            timeseries[i] = sh;
+            timeseries[i] = sh_trunc;
             
-            InvDiscreteSphericalTransform invSh = new InvDiscreteSphericalTransform(timeseries[i]);
+            InvDiscreteSphericalTransform invSh = new InvDiscreteSphericalTransform(sh);
             double[][] rebuilt = invSh.ProcessGaussianDoubleArray(latNum, lonNum);
             double value = DoubleArray.SumArray(DoubleArray.Multiply(rebuilt, areaFraction));
             origAverage[i] = value;
@@ -205,12 +229,14 @@ public class CalculateHarmonicTest {
         SphericalHarmonic[] rebuiltTimeseries = new SphericalHarmonic[timePoints];
         for (int i = 0; i < timePoints; i++) {
             InvDiscreteSphericalTransform invSh = new InvDiscreteSphericalTransform(timeseries[i]);
+            
+            // Generate random lat/lon coordinates  
             double[] spatial = invSh.ProcessGaussian(latNum, lonNum);
             Pair<double[], double[]> coords = InvDiscreteSphericalTransform.GenerateCoordinatePoints(latNum, lonNum);
             double[] currLat = coords.getValue0();
             double[] currLon = coords.getValue1();
-            SphericalHarmonic shRebuilt = new SphericalHarmonic(q);
-            for (int k = 0; k <= q; k++) {
+            SphericalHarmonic shRebuilt = new SphericalHarmonic(q_trunc);
+            for (int k = 0; k <= q_trunc; k++) {
                 for (int l = 0; l <= k; l++) {
                     Pair<Complex, double[]> values = harmonic.Process(k, l, currLat, currLon, spatial);
                     Complex S_kl = values.getValue0();
@@ -230,14 +256,211 @@ public class CalculateHarmonicTest {
             rebuiltAverage[i] = value;
         }
         
-        DoubleArray.Print(origAverage);
-        DoubleArray.Print(rebuiltAverage);
+        double[][] results = DoubleArray.cbind(origAverage, rebuiltAverage);
+        System.out.println("Results: " + Thread.currentThread().getStackTrace()[1].getMethodName());
+        DoubleArray.Print(results);
     }
+    
+    
+    
+    
+    //@Test
+    public void testIncreasingFirstHarmonicRandomPoints() throws Exception {
+        System.out.println("Testing: " + Thread.currentThread().getStackTrace()[1].getMethodName());
+        int q = 7;
+        int q_trunc = 0;
+        int latNum = q+1;
+        int lonNum = q*2;
+        int timePoints = 50;
+        
+        int rebuiltNumPoints = 10;
+        Random rand = new Random();
+        rand.setSeed(12345);
+        
+        // Get Lat/Lon & gridbox areas
+        double[] lat = RadiansToLatitude(GetLatitudeCoordinates(latNum));
+        double[] lon = RadiansToLongitude(GetLongitudeCoordinates(lonNum));
+        AreasForGrid areasForGrid = new AreasForGrid(lat, lon, 1.0);
+        double[][] areaFraction = DoubleArray.Multiply(areasForGrid.GetAreas(), 1.0/(Math.PI*4.0));
+        
+        // Generate the baseline
+        SphericalHarmonic[] timeseries_trunc = new SphericalHarmonic[timePoints];
+        SphericalHarmonic[] timeseries = new SphericalHarmonic[timePoints];
+        double[] origAverage = new double[timePoints];
+        for (int i = 0; i < timePoints; i++) {
+            SphericalHarmonic sh = new SphericalHarmonic(q);
+            SphericalHarmonic sh_trunc = new SphericalHarmonic(q_trunc);
+            double originalFirstHarmValue = 20.0 + 1.0*Math.pow(i,2)*Math.abs(rand.nextDouble());
+            sh.SetHarmonic(0, 0, new Complex(originalFirstHarmValue, 0.0));
+            sh_trunc.SetHarmonic(0, 0, new Complex(originalFirstHarmValue, 0.0));
+            for (int k = 1; k <= q; k++) {
+                for (int l = 0; l <= k; l++) {
+                    //Complex randHarm = GenerateRandomHarmonic(l);
+                    Complex randHarm = l== 0 ? new Complex(Math.pow(i,1.2), 0.0) : new Complex(Math.pow(i,1.5), i*3);
+                    randHarm = randHarm.add(GenerateRandomHarmonic(l, rand));
+                    sh.SetHarmonic(k, l, randHarm);
+                    if (k<= q_trunc) {
+                        sh_trunc.SetHarmonic(k, l, randHarm);
+                    }
+                }
+            }
+            timeseries[i] = sh;
+            timeseries_trunc[i] = sh_trunc;
+            
+            InvDiscreteSphericalTransform invSh = new InvDiscreteSphericalTransform(sh);
+            double[][] rebuilt = invSh.ProcessGaussianDoubleArray(latNum, lonNum);
+            double value = DoubleArray.SumArray(DoubleArray.Multiply(rebuilt, areaFraction));
+            origAverage[i] = value;
+        }
+        
+        // Generate PCA
+        Triplet<Complex[][], Complex[], double[]> eigens = generatePca(timeseries_trunc);
+        Complex[][] eigenVectors = eigens.getValue0();
+        Complex[] eigenValues = eigens.getValue1();
+        
+        // Recreate the data
+        CalculateHarmonic harmonic = new CalculateHarmonic(q_trunc, false, eigenVectors, eigenValues);
+        SphericalHarmonic[] rebuiltTimeseries = new SphericalHarmonic[timePoints];
+        for (int i = 0; i < timePoints; i++) {
+              
+            double[] latPoints = Utilities.randomLatitudeRadians(rebuiltNumPoints, rand);
+            double[] lonPoints = Utilities.randomLongitudeRadians(rebuiltNumPoints, rand);
+            
+            InvDiscreteSphericalTransform invSh = new InvDiscreteSphericalTransform(timeseries[i]);
+            double[] spatial = invSh.ProcessPoints(latPoints, lonPoints);
+            SphericalHarmonic shRebuilt = new SphericalHarmonic(q_trunc);
+            for (int k = 0; k <= q_trunc; k++) {
+                for (int l = 0; l <= k; l++) {
+                    Pair<Complex, double[]> values = harmonic.Process(k, l, latPoints, lonPoints, spatial);
+                    Complex S_kl = values.getValue0();
+                    double[] weights = values.getValue1();
+                    shRebuilt.SetHarmonic(k, l, S_kl);
+                }
+            }
+            rebuiltTimeseries[i] = shRebuilt;
+        }
+        
+        // get the rebuilt
+        double[] rebuiltAverage = new double[timePoints];
+        for (int i = 0; i < timePoints; i++) {
+            InvDiscreteSphericalTransform invSh = new InvDiscreteSphericalTransform(rebuiltTimeseries[i]);
+            double[][] rebuilt = invSh.ProcessGaussianDoubleArray(latNum, lonNum);
+            double value = DoubleArray.SumArray(DoubleArray.Multiply(rebuilt, areaFraction));
+            rebuiltAverage[i] = value;
+        }
+        
+        double[][] results = DoubleArray.cbind(origAverage, rebuiltAverage);
+        System.out.println("Results: " + Thread.currentThread().getStackTrace()[1].getMethodName());
+        DoubleArray.Print(results);
+    }
+    
+    @Test
+    public void testIncreasingFirstHarmonicGoodPoints() throws Exception {
+        System.out.println("Testing: " + Thread.currentThread().getStackTrace()[1].getMethodName());
+        int q = 7;
+        int q_trunc = 0;
+        int latNum = q+1;
+        int lonNum = q*2;
+        int timePoints = 50;
+        
+        Random rand = new Random();
+        rand.setSeed(12345);
+        
+        // Get Lat/Lon & gridbox areas
+        double[] lat = RadiansToLatitude(GetLatitudeCoordinates(latNum));
+        double[] lon = RadiansToLongitude(GetLongitudeCoordinates(lonNum));
+        AreasForGrid areasForGrid = new AreasForGrid(lat, lon, 1.0);
+        double[][] areaFraction = DoubleArray.Multiply(areasForGrid.GetAreas(), 1.0/(Math.PI*4.0));
+        
+        // Generate the baseline
+        SphericalHarmonic[] timeseries_trunc = new SphericalHarmonic[timePoints];
+        SphericalHarmonic[] timeseries = new SphericalHarmonic[timePoints];
+        double[] origAverage = new double[timePoints];
+        for (int i = 0; i < timePoints; i++) {
+            SphericalHarmonic sh = new SphericalHarmonic(q);
+            SphericalHarmonic sh_trunc = new SphericalHarmonic(q_trunc);
+            double originalFirstHarmValue = 20.0 + 1.0*Math.pow(i,2)*Math.abs(rand.nextDouble());
+            sh.SetHarmonic(0, 0, new Complex(originalFirstHarmValue, 0.0));
+            sh_trunc.SetHarmonic(0, 0, new Complex(originalFirstHarmValue, 0.0));
+            for (int k = 1; k <= q; k++) {
+                for (int l = 0; l <= k; l++) {
+                    //Complex randHarm = GenerateRandomHarmonic(l);
+                    Complex randHarm = l== 0 ? new Complex(Math.pow(i,1.2), 0.0) : new Complex(Math.pow(i,1.5), i*3);
+                    randHarm = randHarm.add(GenerateRandomHarmonic(l, rand));
+                    sh.SetHarmonic(k, l, randHarm);
+                    if (k<= q_trunc) {
+                        sh_trunc.SetHarmonic(k, l, randHarm);
+                    }
+                }
+            }
+            timeseries[i] = sh;
+            timeseries_trunc[i] = sh_trunc;
+            
+            InvDiscreteSphericalTransform invSh = new InvDiscreteSphericalTransform(sh);
+            double[][] rebuilt = invSh.ProcessGaussianDoubleArray(latNum, lonNum);
+            double value = DoubleArray.SumArray(DoubleArray.Multiply(rebuilt, areaFraction));
+            origAverage[i] = value;
+        }
+        
+        // Generate PCA
+        Triplet<Complex[][], Complex[], double[]> eigens = generatePca(timeseries_trunc);
+        Complex[][] eigenVectors = eigens.getValue0();
+        Complex[] eigenValues = eigens.getValue1();
+        
+        
+        double[] latPoints = new double[latNum*lonNum];
+        double[] lonPoints = new double[latNum*lonNum];
+
+
+        int counter = 0;
+        for (int i = 0; i < lat.length; i++) {
+            for (int j = 0; j < lon.length; j++) {
+                latPoints[counter] = lat[i];
+                lonPoints[counter] = lon[j];
+                counter++;
+            }
+        }
+        
+        
+        // Recreate the data
+        CalculateHarmonic harmonic = new CalculateHarmonic(q_trunc, false, eigenVectors, eigenValues);
+        SphericalHarmonic[] rebuiltTimeseries = new SphericalHarmonic[timePoints];
+        for (int i = 0; i < timePoints; i++) {     
+            InvDiscreteSphericalTransform invSh = new InvDiscreteSphericalTransform(timeseries[i]);
+            double[] spatial = invSh.ProcessPoints(latPoints, lonPoints);
+            SphericalHarmonic shRebuilt = new SphericalHarmonic(q_trunc);
+            for (int k = 0; k <= q_trunc; k++) {
+                for (int l = 0; l <= k; l++) {
+                    Pair<Complex, double[]> values = harmonic.Process(k, l, latPoints, lonPoints, spatial);
+                    Complex S_kl = values.getValue0();
+                    double[] weights = values.getValue1();
+                    shRebuilt.SetHarmonic(k, l, S_kl);
+                }
+            }
+            rebuiltTimeseries[i] = shRebuilt;
+        }
+        
+        // get the rebuilt
+        double[] rebuiltAverage = new double[timePoints];
+        for (int i = 0; i < timePoints; i++) {
+            InvDiscreteSphericalTransform invSh = new InvDiscreteSphericalTransform(rebuiltTimeseries[i]);
+            double[][] rebuilt = invSh.ProcessGaussianDoubleArray(latNum, lonNum);
+            double value = DoubleArray.SumArray(DoubleArray.Multiply(rebuilt, areaFraction));
+            rebuiltAverage[i] = value;
+        }
+        
+        double[][] results = DoubleArray.cbind(origAverage, rebuiltAverage);
+        System.out.println("Results: " + Thread.currentThread().getStackTrace()[1].getMethodName());
+        DoubleArray.Print(results);
+    }
+    
+    
+    
     
     /**
      * Test of Process method, of class CalculateHarmonic.
      */
-    @Test
+    //@Test
     public void testStrongFirstHarmRandomOther() throws Exception {
         System.out.println("Testing: " + Thread.currentThread().getStackTrace()[1].getMethodName());
         int q = 7;
@@ -293,7 +516,7 @@ public class CalculateHarmonicTest {
         for (int j = 0; j < timeseriesLength; j++) {
             Complex[] spectral = timeseriesSpherical[j].GetFullCompressedSpectra();        
             for (int i = 0; i < numOfQpoints; i++) {
-                qRealizations[i][j] = spectral[j];
+                qRealizations[i][j] = spectral[i];
             }
         }
         
@@ -315,7 +538,7 @@ public class CalculateHarmonicTest {
     /**
      * Test of Process method, of class CalculateHarmonic.
      */
-    @Test
+    //@Test
     public void testAngellKorshoverNetworkLocations() throws Exception {
         System.out.println("Testing: " + Thread.currentThread().getStackTrace()[1].getMethodName());
         int q = 7;
@@ -331,8 +554,8 @@ public class CalculateHarmonicTest {
         }
         
         AngellKorshoverNetwork akNetwork = new AngellKorshoverNetwork();
-        double[] lat = akNetwork.GetLats();
-        double[] lon = akNetwork.GetLons();
+        double[] lat = Utilities.LatitudeToRadians(akNetwork.GetLats());
+        double[] lon = Utilities.LongitudeToRadians(akNetwork.GetLons());
         double[] value = invShTrans.ProcessPoints(lat, lon);
                 
         // Generate PCA
