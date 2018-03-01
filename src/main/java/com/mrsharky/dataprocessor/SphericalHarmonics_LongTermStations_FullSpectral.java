@@ -206,9 +206,6 @@ public class SphericalHarmonics_LongTermStations_FullSpectral {
             final List<Date> finalDates = dates;
             // Convert data from spatial to spectral
             
-            
-            
-  
             int threads = Runtime.getRuntime().availableProcessors();
             ExecutorService service = Executors.newFixedThreadPool(threads);
             List<Future<Pair<Integer, Complex[]>>> futures = new ArrayList<Future<Pair<Integer, Complex[]>>>();

@@ -274,7 +274,7 @@ public class NetCdfLoader {
             Logger.getLogger(NetCdfLoader.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(-1);
         } finally {
-        if (dataFile != null) {
+            if (dataFile != null) {
                 try {
                     dataFile.close();
                 } catch (IOException ioe) {
@@ -357,7 +357,16 @@ public class NetCdfLoader {
         } catch (InvalidRangeException ex) {
             Logger.getLogger(NetCdfLoader.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(-1);
-        }     
+        } finally {
+            if (dataFile != null) {
+                try {
+                    dataFile.close();
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                    System.exit(-1);
+                }
+            }
+        }
         return output;
     }
     
@@ -485,7 +494,16 @@ public class NetCdfLoader {
         } catch (InvalidRangeException ex) {
             Logger.getLogger(NetCdfLoader.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(-1);
-        }     
+        }  finally {
+            if (dataFile != null) {
+                try {
+                    dataFile.close();
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                    System.exit(-1);
+                }
+            }
+        }
         return output;
     }
 }

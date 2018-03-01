@@ -14,6 +14,16 @@ import org.apache.commons.math3.linear.RealMatrix;
  */
 public class DoubleArray {
 
+    public static double[][] RandomDoubleArray(int rows, int cols) {
+        double[][] ret = new double[rows][cols];
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                ret[row][col] = Math.random();
+            }
+        }
+        return ret;
+    }
+    
     public static double[] Multiply(double[] mat, double scaler) {
         double[] ret = new double[mat.length];
         for (int row = 0; row < mat.length; row++) {

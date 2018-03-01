@@ -164,10 +164,13 @@ public class ClimateFromStations1_FullSpectra {
                 double value = DoubleArray.SumArray(gridbox_weighted);
                 
                 // Get a non-area-weighted version of the errors for each gridbox (to show that the individual error is going down,.. hopefully
-                gridbox_values = DoubleArray.Multiply(gridbox_values, -1.0);
-                double[][] baseline = month == 0 ? pcaData.getOriginalYearlyData().get(currDate): pcaData.getOriginalMonthlyData().get(currDate);
-                double[][] spatialError = DoubleArray.Power(DoubleArray.Add(baseline, gridbox_values),  2.0);
-                double totalSpatialError = DoubleArray.SumArray(spatialError);
+                double totalSpatialError = 0;
+                if (false) {
+                    gridbox_values = DoubleArray.Multiply(gridbox_values, -1.0);
+                    double[][] baseline = month == 0 ? pcaData.getOriginalYearlyData().get(currDate): pcaData.getOriginalMonthlyData().get(currDate);
+                    double[][] spatialError = DoubleArray.Power(DoubleArray.Add(baseline, gridbox_values),  2.0);
+                    totalSpatialError = DoubleArray.SumArray(spatialError);
+                }
 
                 //DoubleArray.Print(gridBoxAnomSd);       
                 
