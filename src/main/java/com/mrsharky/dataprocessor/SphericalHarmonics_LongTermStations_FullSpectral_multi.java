@@ -266,7 +266,7 @@ public class SphericalHarmonics_LongTermStations_FullSpectral_multi {
 
         System.gc();
         int threads = Runtime.getRuntime().availableProcessors();
-        threads = 2;
+        threads = 1;
         ExecutorService service = Executors.newFixedThreadPool(threads);
         List<Future<Quartet<Integer, Complex[], Complex[][], double[]>>> futures = new ArrayList<Future<Quartet<Integer, Complex[], Complex[][], double[]>>>();
 

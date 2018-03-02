@@ -10,6 +10,8 @@ import com.mrsharky.climate.sphericalHarmonic.ClimateFromStations1;
 import com.mrsharky.climate.sphericalHarmonic.ClimateFromStations1_FullSpectra;
 import com.mrsharky.dataprocessor.SphericalHarmonics_LongTermStations;
 import com.mrsharky.dataprocessor.SphericalHarmonics_LongTermStations_FullSpectral_multi;
+import static com.mrsharky.helpers.Utilities.recursiveDelete;
+import com.mrsharky.stations.ghcn.GhcnV3;
 import com.mrsharky.stations.netcdf.NetCdf_NearestLocations;
 import java.io.File;
 import java.util.ArrayList;
@@ -27,21 +29,22 @@ public class Test_fullQ {
         String ncepVariable = "air";
         String ncepTime = "time";
         
-        double[] varExplained = new double[]{ 0.8, 0.9 };
+        double[] varExplained = new double[]{ 0.8};
         
         List<Pair<String, String>> baselines = new ArrayList<Pair<String, String>>();        
         //baselines.add(Pair.with("1850-12-31", "2014-12-31"));
         //baselines.add(Pair.with("1870-12-31", "1900-12-31"));
         //baselines.add(Pair.with("1900-12-31", "1930-12-31"));
         //baselines.add(Pair.with("1930-12-31", "1960-12-31"));
-        baselines.add(Pair.with("1960-12-31", "1990-12-31"));
+        baselines.add(Pair.with("1950-12-31", "1980-12-31"));
+        //baselines.add(Pair.with("1960-12-31", "1990-12-31"));
         
         List<Pair<Integer, Integer>> gridBoxes = new ArrayList<Pair<Integer, Integer>>();        
-        gridBoxes.add(Pair.with(0, 0));
+        //gridBoxes.add(Pair.with(0, 0));
         //gridBoxes.add(Pair.with(5, 10));
-        gridBoxes.add(Pair.with(10, 20));
-        gridBoxes.add(Pair.with(15, 30));
-        gridBoxes.add(Pair.with(20, 40));
+        //gridBoxes.add(Pair.with(10, 20));
+        //gridBoxes.add(Pair.with(15, 30));
+        //gridBoxes.add(Pair.with(20, 40));
         //gridBoxes.add(Pair.with(40, 80));
         //gridBoxes.add(Pair.with(60, 120));
         
@@ -57,8 +60,10 @@ public class Test_fullQ {
         qs.add(40);
         qs.add(50);
         qs.add(60);
-        qs.add(102);
-        boolean[] normalized = new boolean[]{ false, true };
+        //qs.add(102);
+        boolean[] normalized = new boolean[]{ false };
+        
+        List<String> ghcnStationList = new ArrayList<String>();
         
         // Generate Baselines
         if (false) {
@@ -85,6 +90,57 @@ public class Test_fullQ {
                                 "--time \"" + ncepTime + "\"";
                         String[] arguments = inputArgs.split(" ");
                         NetCdfGlobalAverageSpectral.main(arguments);
+                    }
+                }
+            }
+        }
+        
+        // GHCN
+        if (true) {
+            String sourceDir = "/media/dropbox/PhD/Reboot/Projects/ghcn_v3_new/ghcnm.tavg.latest.qca/ghcnm.v3.3.0.20171203/";
+            String input = "ghcnm.tavg.v3.3.0.20171203.qca";
+            String monthlyData = sourceDir + input + ".dat";
+            String inventoryData = sourceDir + input + ".inv";
+
+            double[] minDistances = new double[]{500.0};
+            int[]    minMonthYears = new int[]{30};
+            String lowerBaseline = "1950-12-31";
+            String upperBaseline = "1980-12-31";
+            for (double minDistance : minDistances) {
+                for (int minMonthYear : minMonthYears) {
+
+                    String pointFilename = "dataset=" + input + 
+                                        "_lowerBaseline=" + lowerBaseline + 
+                                        "_upperBaseline=" + upperBaseline +
+                                        "_minDistance=" + minDistance + 
+                                        "_minMonthYears=" + minMonthYear;
+
+                    String pointDataset = "Results/NewPoints/" +
+                                        pointFilename +
+                                        "/finalStations_Results.serialized";
+                    File stationFile = new File(pointDataset);
+
+                    ghcnStationList.add(pointDataset);
+                    if (!stationFile.exists()) {
+                        String qcType = "QCA";
+
+                        // Delete folder if exists
+                        File destinationFile = new File(pointDataset); 
+                        recursiveDelete(destinationFile);
+
+                        String args2 = 
+                                "--monthlyData \""+ monthlyData + "\" " +
+                                "--inventoryData \"" + inventoryData + "\" " +
+                                "--qcType \"" + qcType + "\" " +
+                                "--createSpark " +
+                                "--minDistance \"" + minDistance + "\" " +
+                                "--minMonthYears \"" + minMonthYear + "\" " +
+                                "--lowerBaseline \"" + lowerBaseline + "\" " + 
+                                "--upperBaseline \"" + upperBaseline + "\" " + 
+                                "--destination \"" + "Results/NewPoints/" + pointFilename + "\"";
+                        String[] arguments = args2.split(" ");
+
+                        GhcnV3.main(arguments);
                     }
                 }
             }
@@ -134,145 +190,133 @@ public class Test_fullQ {
 
                             NetCdf_NearestLocations.main(arguments);
                         }
+                        ghcnStationList.add(pointDataset);
                         
-                        List<Pair<String, String>> pcaDates = new ArrayList<Pair<String, String>>();
-                        pcaDates.add(Pair.with("1850-12-31", "2014-12-31"));
-                        /*pcaDates.add(Pair.with("1850-12-31", "1880-12-31"));
-                        pcaDates.add(Pair.with("1860-12-31", "1890-12-31"));
-                        pcaDates.add(Pair.with("1870-12-31", "1900-12-31"));
-                        pcaDates.add(Pair.with("1880-12-31", "1910-12-31"));
-                        pcaDates.add(Pair.with("1890-12-31", "1920-12-31"));
-                        pcaDates.add(Pair.with("1900-12-31", "1930-12-31"));
-                        pcaDates.add(Pair.with("1910-12-31", "1940-12-31"));
-                        pcaDates.add(Pair.with("1920-12-31", "1950-12-31"));
-                        pcaDates.add(Pair.with("1930-12-31", "1940-12-31"));
-                        pcaDates.add(Pair.with("1940-12-31", "1950-12-31"));
-                        pcaDates.add(Pair.with("1950-12-31", "1980-12-31"));
-                        pcaDates.add(Pair.with("1960-12-31", "1990-12-31"));
-                        pcaDates.add(Pair.with("1970-12-31", "2000-12-31"));
-                        pcaDates.add(Pair.with("1980-12-31", "2010-12-31"));
-                        pcaDates.add(Pair.with("1990-12-31", "2020-12-31"));*/ 
-                        //pcaDates.add(Pair.with(lowerBaseline, upperBaseline));
-                        
-                        for (Pair<String, String> pcaDate : pcaDates) {
-                            String startDate = pcaDate.getValue0();
-                            String endDate   = pcaDate.getValue1();
-                            
-                            for (boolean normal : normalized) {         
-                                for (int q : qs){
-                                    
-                                    String pcaFilename = "dataset=" + input + 
-                                                    "_q=" + q + 
-                                                    "_normalized=" + normal + 
-                                                    "_lowerbaseline=" + lowerBaseline +
-                                                    "_upperBaseline=" + upperBaseline +
-                                                    "_startDate=" + startDate +
-                                                    "_endDate=" + endDate;   
-                                    String pcaDataset;
-                                    
-                                    if (halfPca) {
-                                        pcaDataset = "Results/NewPCA/" +
-                                                pcaFilename + 
-                                                ".serialized";
-                                    } else {
-                                        pcaDataset = "Results/NewPCA_Full/" +
-                                                pcaFilename + 
-                                                ".serialized";
-                                    }
-                                    
-                                    File pcaFile = new File(pcaDataset);
-                                    if (!pcaFile.exists()) {
+                        for (String currPointDataset : ghcnStationList) {
 
-                                        String inputData = "Data/" + input;
+                            List<Pair<String, String>> pcaDates = new ArrayList<Pair<String, String>>();
+                            pcaDates.add(Pair.with("1850-12-31", "2014-12-31"));
 
-                                        String inputArgs =
-                                            "--input \""+ inputData + "\" " +
-                                            "--output \""+ pcaDataset + "\" " +
-                                            "--variable \""+ ncepVariable + "\" " +
-                                            "--q \"" + q + "\" " +
-                                            "--lowerbaseline \"" + lowerBaseline + "\" " +
-                                            "--upperbaseline \"" + upperBaseline + "\" " +
-                                            "--startDate \"" + startDate + "\" " +
-                                            "--endDate \"" + endDate + "\" " +
-                                            (normal ? " --normalize " : "") +
-                                            "--time \"" + ncepTime + "\"";
+                            for (Pair<String, String> pcaDate : pcaDates) {
+                                String startDate = pcaDate.getValue0();
+                                String endDate   = pcaDate.getValue1();
 
-                                        String[] arguments = inputArgs.split(" ");
+                                for (boolean normal : normalized) {         
+                                    for (int q : qs){
+
+                                        String pcaFilename = "dataset=" + input + 
+                                                        "_q=" + q + 
+                                                        "_normalized=" + normal + 
+                                                        "_lowerbaseline=" + lowerBaseline +
+                                                        "_upperBaseline=" + upperBaseline +
+                                                        "_startDate=" + startDate +
+                                                        "_endDate=" + endDate;   
+                                        String pcaDataset;
+
                                         if (halfPca) {
-                                            SphericalHarmonics_LongTermStations.main(arguments); 
+                                            pcaDataset = "Results/NewPCA/" +
+                                                    pcaFilename + 
+                                                    ".serialized";
                                         } else {
-                                            SphericalHarmonics_LongTermStations_FullSpectral_multi.main(arguments); 
+                                            pcaDataset = "Results/NewPCA_Full/" +
+                                                    pcaFilename + 
+                                                    ".serialized";
                                         }
-                                    }
 
-                                    // Now use the point Dataset and PCA dataset together
-                                    for (double currVarExplained : varExplained) {
+                                        File pcaFile = new File(pcaDataset);
+                                        if (!pcaFile.exists()) {
 
-                                        // first harmonic only
-                                        if (true) {
-                                            String finalOutput = "Results/NewFinal/" + 
-                                                    pcaFilename + "/" +
-                                                    pointFilename + "/VarExplained=" + currVarExplained + 
-                                                    "_results.csv";
+                                            String inputData = "Data/" + input;
 
-                                            File outputFile = new File(finalOutput);
+                                            String inputArgs =
+                                                "--input \""+ inputData + "\" " +
+                                                "--output \""+ pcaDataset + "\" " +
+                                                "--variable \""+ ncepVariable + "\" " +
+                                                "--q \"" + q + "\" " +
+                                                "--lowerbaseline \"" + lowerBaseline + "\" " +
+                                                "--upperbaseline \"" + upperBaseline + "\" " +
+                                                "--startDate \"" + startDate + "\" " +
+                                                "--endDate \"" + endDate + "\" " +
+                                                (normal ? " --normalize " : "") +
+                                                "--time \"" + ncepTime + "\"";
 
-                                            //System.setProperty("verbose", "true");
-
-                                            if (!outputFile.exists()) {
-                                                 String args2 = 
-                                                         "--eof \""+ pcaDataset + "\" " +
-                                                         "--q " + 0 + " " +
-                                                         "--output \"" + finalOutput + "\" " +
-                                                         "--varExplained \"" + currVarExplained + "\" " +
-                                                         (normal ? " --normalized " : "") + 
-                                                         "--station \"" + pointDataset + "\"";
-                                                 String[] arguments = args2.split(" ");
-                                                 ClimateFromStations1_FullSpectra.main(arguments);
-                                            }
-                                        }
-                                        
-                                        // Full Harmonic
-                                        if (false) {
-                                            String finalOutput;
+                                            String[] arguments = inputArgs.split(" ");
                                             if (halfPca) {
-                                                finalOutput = "Results/NewFinal_global/" + 
-                                                    pcaFilename + "/" +
-                                                    pointFilename + "/VarExplained=" + currVarExplained + 
-                                                    "_results.csv";
+                                                SphericalHarmonics_LongTermStations.main(arguments); 
                                             } else {
-                                                finalOutput = "Results/NewFinal_globalFullPca/" + 
-                                                    pcaFilename + "/" +
-                                                    pointFilename + "/VarExplained=" + currVarExplained + 
-                                                    "_results.csv";
+                                                SphericalHarmonics_LongTermStations_FullSpectral_multi.main(arguments); 
                                             }
-                                            
+                                        }
 
-                                            File outputFile = new File(finalOutput);
+                                        // Now use the point Dataset and PCA dataset together
+                                        for (double currVarExplained : varExplained) {
 
-                                            //System.setProperty("verbose", "true");
+                                            // first harmonic only
+                                            if (true) {
+                                                String finalOutput = "Results/NewFinal/" + 
+                                                        pcaFilename + "/" +
+                                                        currPointDataset + "/VarExplained=" + currVarExplained + 
+                                                        "_results.csv";
 
-                                            if (!outputFile.exists()) {
-                                                 String args2 = 
-                                                         "--eof \""+ pcaDataset + "\" " +
-                                                         "--q " + -1 + " " +
-                                                         "--output \"" + finalOutput + "\" " +
-                                                         "--varExplained \"" + currVarExplained + "\" " +
-                                                         (normal ? " --normalized " : "") + 
-                                                         "--station \"" + pointDataset + "\"";
-                                                 String[] arguments = args2.split(" ");
-                                                 
-                                                 if (halfPca) {
-                                                    ClimateFromStations1.main(arguments);
-                                                 } else {
-                                                    ClimateFromStations1_FullSpectra.main(arguments); 
-                                                 }
+                                                File outputFile = new File(finalOutput);
+
+                                                //System.setProperty("verbose", "true");
+
+                                                if (!outputFile.exists()) {
+                                                     String args2 = 
+                                                             "--eof \""+ pcaDataset + "\" " +
+                                                             "--q " + 0 + " " +
+                                                             "--output \"" + finalOutput + "\" " +
+                                                             "--varExplained \"" + currVarExplained + "\" " +
+                                                             (normal ? " --normalized " : "") + 
+                                                             "--station \"" + currPointDataset + "\"";
+                                                     String[] arguments = args2.split(" ");
+                                                     ClimateFromStations1_FullSpectra.main(arguments);
+                                                }
+                                            }
+
+                                            // Full Harmonic
+                                            if (false) {
+                                                String finalOutput;
+                                                if (halfPca) {
+                                                    finalOutput = "Results/NewFinal_global/" + 
+                                                        pcaFilename + "/" +
+                                                        currPointDataset + "/VarExplained=" + currVarExplained + 
+                                                        "_results.csv";
+                                                } else {
+                                                    finalOutput = "Results/NewFinal_globalFullPca/" + 
+                                                        pcaFilename + "/" +
+                                                        currPointDataset + "/VarExplained=" + currVarExplained + 
+                                                        "_results.csv";
+                                                }
+
+
+                                                File outputFile = new File(finalOutput);
+
+                                                //System.setProperty("verbose", "true");
+
+                                                if (!outputFile.exists()) {
+                                                     String args2 = 
+                                                             "--eof \""+ pcaDataset + "\" " +
+                                                             "--q " + -1 + " " +
+                                                             "--output \"" + finalOutput + "\" " +
+                                                             "--varExplained \"" + currVarExplained + "\" " +
+                                                             (normal ? " --normalized " : "") + 
+                                                             "--station \"" + currPointDataset + "\"";
+                                                     String[] arguments = args2.split(" ");
+
+                                                     if (halfPca) {
+                                                        ClimateFromStations1.main(arguments);
+                                                     } else {
+                                                        ClimateFromStations1_FullSpectra.main(arguments); 
+                                                     }
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
-                        }  
+                        }
                     }
                 }
             }

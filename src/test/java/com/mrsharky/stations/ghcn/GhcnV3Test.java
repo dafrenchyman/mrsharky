@@ -46,7 +46,7 @@ public class GhcnV3Test {
         String monthlyData = sourceDir + input + ".dat";
         String inventoryData = sourceDir + input + ".inv";
         
-        double[] minDistances = new double[]{0.0};
+        double[] minDistances = new double[]{500.0, 0.0};
         int[]    minMonthYears = new int[]{20, 30};
         String lowerBaseline = "1960-12-31";
         String upperBaseline = "1990-12-31";

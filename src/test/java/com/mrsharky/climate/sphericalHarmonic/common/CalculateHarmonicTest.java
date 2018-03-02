@@ -20,6 +20,8 @@ import static com.mrsharky.helpers.JblasMatrixHelpers.ApacheMath3ToJblas;
 import com.mrsharky.helpers.Utilities;
 import static com.mrsharky.helpers.Utilities.RadiansToLatitude;
 import com.mrsharky.stations.netcdf.AngellKorshoverNetwork;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import org.apache.commons.math3.complex.Complex;
 import org.javatuples.Pair;
@@ -354,7 +356,7 @@ public class CalculateHarmonicTest {
         DoubleArray.Print(results);
     }
     
-    @Test
+    //@Test
     public void testIncreasingFirstHarmonicGoodPoints() throws Exception {
         System.out.println("Testing: " + Thread.currentThread().getStackTrace()[1].getMethodName());
         int q = 7;
@@ -460,51 +462,118 @@ public class CalculateHarmonicTest {
     /**
      * Test of Process method, of class CalculateHarmonic.
      */
-    //@Test
+    @Test
     public void testStrongFirstHarmRandomOther() throws Exception {
         System.out.println("Testing: " + Thread.currentThread().getStackTrace()[1].getMethodName());
         int q = 7;
-        int latNum = 32;
-        int lonNum = 10;
-        SphericalHarmonic sh = new SphericalHarmonic(q);
-        double originalFirstHarmValue = 20.0;
-        sh.SetHarmonic(0, 0, new Complex(originalFirstHarmValue, 0.0));
-        for (int k = 1; k <= q; k++) {
-            for (int l = 0; l <= k; l++) {
-                sh.SetHarmonic(k, l, GenerateRandomHarmonic(l));
+        int q_truc = 0;
+        int latNum = q+1;
+        int lonNum = 2*q;
+        int timePoints = 50;
+        
+        boolean useGriddedPredictors = false;
+        int numRandPoints = 1000; //latNum*lonNum;
+        
+        Random rand = new Random();
+        rand.setSeed(12345);
+        
+        // Get Lat/Lon & gridbox areas
+        double[][] areaFraction = null;
+        {
+            double[] lat = RadiansToLatitude(GetLatitudeCoordinates(latNum));
+            double[] lon = RadiansToLongitude(GetLongitudeCoordinates(lonNum));
+            AreasForGrid areasForGrid = new AreasForGrid(lat, lon, 1.0);
+            areaFraction = DoubleArray.Multiply(areasForGrid.GetAreas(), 1.0/(Math.PI*4.0));
+        }
+        
+        Map<Integer, double[][]> originalMap = new HashMap<Integer, double[][]>();
+        SphericalHarmonic[] timeseries = new SphericalHarmonic[timePoints];
+        double[] origAverage = new double[timePoints];
+        for (int i = 0; i < timePoints; i++) {
+            SphericalHarmonic sh = new SphericalHarmonic(q);
+            for (int k = 0; k <= q; k++) {
+                for (int l = 0; l <= k; l++) {
+                    sh.SetHarmonic(k, l, GenerateRandomHarmonic(l, rand));
+                }
             }
+            timeseries[i] = sh;
+            
+            InvDiscreteSphericalTransform invSh = new InvDiscreteSphericalTransform(sh);
+            double[][] rebuilt = invSh.ProcessGaussianDoubleArray(latNum, lonNum);
+            originalMap.put(i, rebuilt);
+            double value = DoubleArray.SumArray(DoubleArray.Multiply(rebuilt, areaFraction));
+            origAverage[i] = value;
+
         }
 
-        InvDiscreteSphericalTransform invShTrans = new InvDiscreteSphericalTransform(sh);
-        double[] spatial = invShTrans.ProcessGaussian(latNum, lonNum);
-        Pair<double[], double[]> coordinates = invShTrans.GenerateCoordinatePoints(latNum, lonNum);
-        
-        double[] lat = coordinates.getValue0();
-        double[] lon = coordinates.getValue1();
-        
         // Generate PCA
-        SphericalHarmonic[] timeseries = new SphericalHarmonic[]{ sh };
         Triplet<Complex[][], Complex[], double[]> eigens = generatePca(timeseries);
         Complex[][] eigenVectors = eigens.getValue0();
         Complex[] eigenValues = eigens.getValue1();
+        double[] rebuiltAverage = new double[timePoints];
         
-        CalculateHarmonic harmonic = new CalculateHarmonic(q, false, eigenVectors, eigenValues);
-        SphericalHarmonic shRebuilt = new SphericalHarmonic(q);
-        for (int k = 0; k <= q; k++) {
-            for (int l = 0; l <= k; l++) {
-                Pair<Complex, double[]> values = harmonic.Process(k, l, lat, lon, spatial);
-                Complex S_kl = values.getValue0();
-                double[] weights = values.getValue1();
-                shRebuilt.SetHarmonic(k, l, S_kl);
+        // Rebuild the data
+        Map<Integer, double[][]> rebuiltMap = new HashMap<Integer, double[][]>();
+        SphericalHarmonic[] timeseriesRebuilt = new SphericalHarmonic[timePoints];
+        for (int i = 0; i < timePoints; i++) {
+            
+            double[] spatial = null;
+            double[] lat = null;
+            double[] lon = null;
+            if (useGriddedPredictors) {
+                InvDiscreteSphericalTransform invShTrans = new InvDiscreteSphericalTransform(timeseries[i]);
+                Pair<double[], double[]> coordinates = invShTrans.GenerateCoordinatePoints(latNum, lonNum);
+                spatial = invShTrans.ProcessGaussian(latNum, lonNum);
+                lat = coordinates.getValue0();
+                lon = coordinates.getValue1();
+            } else {
+                lat = Utilities.randomLatitudeRadians(numRandPoints, rand);
+                lon = Utilities.randomLongitudeRadians(numRandPoints, rand);
+                InvDiscreteSphericalTransform invShTrans = new InvDiscreteSphericalTransform(timeseries[i]);
+                spatial = invShTrans.ProcessPoints(lat, lon);
             }
+            
+            CalculateHarmonic harmonic = new CalculateHarmonic(q, false, eigenVectors, eigenValues);
+            SphericalHarmonic shRebuilt = new SphericalHarmonic(q);
+            for (int k = 0; k <= q_truc; k++) {
+                for (int l = 0; l <= k; l++) {
+                    Pair<Complex, double[]> values = harmonic.Process(k, l, lat, lon, spatial);
+                    Complex S_kl = values.getValue0();
+                    double[] weights = values.getValue1();
+                    shRebuilt.SetHarmonic(k, l, S_kl);
+                }
+            }
+            
+            timeseriesRebuilt[i] = shRebuilt;
+            InvDiscreteSphericalTransform invSh = new InvDiscreteSphericalTransform(shRebuilt);
+            double[][] rebuilt = invSh.ProcessGaussianDoubleArray(latNum, lonNum);
+            rebuiltMap.put(i, rebuilt);
+            double value = DoubleArray.SumArray(DoubleArray.Multiply(rebuilt, areaFraction));
+            rebuiltAverage[i] = value;
         }
         
-        // Make sure first harmonic is within 10% of original value
-        double rebuiltFirstHarmonicValue = shRebuilt.GetHarmonic(0, 0).getReal();
-        double ratio = rebuiltFirstHarmonicValue/originalFirstHarmValue;
-        if (Math.abs(ratio-1.0) > 0.10 ) {
-            Assert.fail("Error too large between originala and rebuilt");
-        }
+        double[][] comparisons = DoubleArray.cbind(origAverage, rebuiltAverage);
+        
+        // Print before after of the overall value
+        DoubleArray.Print(comparisons);
+        
+        // Print before after of the full harmonic at time = 0
+        timeseries[0].PrintHarmonic();
+        timeseriesRebuilt[0].PrintHarmonic();
+        
+        // Print before after of the map at time = 0
+        double[][] mapOrig = originalMap.get(0);
+        double[][] mapRebu = rebuiltMap.get(0);
+        double[][] diff = DoubleArray.Add(mapOrig, DoubleArray.Multiply(mapRebu, -1.0));
+        double sse = DoubleArray.SumArray(DoubleArray.Power(diff, 2.0));
+        
+        DoubleArray.Print(mapOrig);
+        DoubleArray.Print(mapRebu);
+        System.out.println("SSE: " + sse);
+        
+        
+        
+        
     }
     
     private static Triplet<Complex[][], Complex[], double[]> generatePca(SphericalHarmonic[] timeseriesSpherical) throws Exception {
