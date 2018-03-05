@@ -6,7 +6,6 @@
 package com.mrsharky.discreteSphericalTransform;
 
 import com.mrsharky.helpers.ComplexArray;
-import com.svengato.math.HalfInteger;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;

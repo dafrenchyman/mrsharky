@@ -10,6 +10,7 @@ import com.mrsharky.climate.sphericalHarmonic.ClimateFromStations1;
 import com.mrsharky.climate.sphericalHarmonic.ClimateFromStations1_FullSpectra;
 import com.mrsharky.dataprocessor.SphericalHarmonics_LongTermStations;
 import com.mrsharky.dataprocessor.SphericalHarmonics_LongTermStations_FullSpectral_multi;
+import com.mrsharky.dataprocessor.SphericalHarmonics_LongTermStations_FullSpectral_multi1;
 import static com.mrsharky.helpers.Utilities.recursiveDelete;
 import com.mrsharky.stations.ghcn.GhcnV3;
 import com.mrsharky.stations.netcdf.NetCdf_NearestLocations;
@@ -40,9 +41,9 @@ public class Test_fullQ {
         //baselines.add(Pair.with("1960-12-31", "1990-12-31"));
         
         List<Pair<Integer, Integer>> gridBoxes = new ArrayList<Pair<Integer, Integer>>();        
-        //gridBoxes.add(Pair.with(0, 0));
+        gridBoxes.add(Pair.with(0, 0));
         //gridBoxes.add(Pair.with(5, 10));
-        //gridBoxes.add(Pair.with(10, 20));
+        gridBoxes.add(Pair.with(10, 20));
         //gridBoxes.add(Pair.with(15, 30));
         //gridBoxes.add(Pair.with(20, 40));
         //gridBoxes.add(Pair.with(40, 80));
@@ -53,14 +54,14 @@ public class Test_fullQ {
         int pointsQ = 102;
         
         List<Integer> qs = new ArrayList<Integer>();
-        qs.add(0);
-        qs.add(10);
-        qs.add(20);
-        qs.add(30);
-        qs.add(40);
-        qs.add(50);
-        qs.add(60);
-        //qs.add(102);
+        //qs.add(0);
+        //qs.add(10);
+        //qs.add(20);
+        //qs.add(30);
+        //qs.add(40);
+        //qs.add(50);
+        //qs.add(60);
+        qs.add(102);
         boolean[] normalized = new boolean[]{ false };
         
         List<String> ghcnStationList = new ArrayList<String>();
@@ -244,7 +245,7 @@ public class Test_fullQ {
                                             if (halfPca) {
                                                 SphericalHarmonics_LongTermStations.main(arguments); 
                                             } else {
-                                                SphericalHarmonics_LongTermStations_FullSpectral_multi.main(arguments); 
+                                                SphericalHarmonics_LongTermStations_FullSpectral_multi1.main(arguments); 
                                             }
                                         }
 

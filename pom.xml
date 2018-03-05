@@ -10,14 +10,28 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
-    <!--repositories>
+    <repositories>
         <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+        <!--repository>
             <id>unidata-releases</id>
             <name>Unidata Releases</name>
             <url>https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases/</url>
-        </repository>
-    </repositories-->
+        </repository-->
+    </repositories>
     <dependencies>
+        
+        <!-- Github Dependencies -->
+        
+        <!-- https://github.com/svengato/Wigner3j6j9j/ - Used for Wigner3j for spherical harmonic multiplication -->
+        <dependency>
+            <groupId>com.github.svengato</groupId>
+            <artifactId>Wigner3j6j9j</artifactId>
+            <version>18239d2b179e0e417de36b07c48227f349a9c556</version>
+        </dependency>
+        
         <!-- Spark Dependencies -->
         <dependency>
             <groupId>org.apache.spark</groupId>

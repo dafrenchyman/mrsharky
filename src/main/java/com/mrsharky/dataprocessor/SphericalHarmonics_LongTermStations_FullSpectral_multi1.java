@@ -36,9 +36,9 @@ import org.jblas.ComplexDoubleMatrix;
  *
  * @author Julien Pierret
  */
-public class SphericalHarmonics_LongTermStations_FullSpectral_multi {
+public class SphericalHarmonics_LongTermStations_FullSpectral_multi1 {
     
-    public SphericalHarmonics_LongTermStations_FullSpectral_multi(int q, String input, String variable, String time
+    public SphericalHarmonics_LongTermStations_FullSpectral_multi1(int q, String input, String variable, String time
             , Date lowerDateCutoff, Date upperDateCutoff, Date startDate, Date endDate, boolean normalize, String output) throws Exception {
         
         // Load the NetCDF data
@@ -177,24 +177,6 @@ public class SphericalHarmonics_LongTermStations_FullSpectral_multi {
                 }
             }
 
-            //pcaResults.setOriginalMonthlyData(monthlyData);
-            //pcaResults.setOriginalYearlyData(yearlyData);
-
-            // Process Rolling Variance
-            boolean processRollingVar = false;
-            if (processRollingVar) {
-                GridBoxVariance gbv = new GridBoxVariance(allData, numLats, numLons, 30);
-                for (int month = 0; month <= 12; month++) {
-                    List<Date> allDates = allData.keySet().stream().sorted().collect(Collectors.toList());
-                    for (Date currDate : allDates) {
-                        int year = currDate.getYear() + 1900;
-                        Pair key = Pair.with(month, year);
-                        double[][] rolling = gbv.GetGridBoxAnomVar().get(key);
-                        pcaResults.setRollingGridBoxAnomVar(month, year, rolling);
-                    }
-                }
-            }
-
             for (int month = 0; month <= 12; month++) {
                 System.out.println("------------------------------------------------------------------------");
                 System.out.println("Converting from Spatial to Spectral for month: " + month);
@@ -265,87 +247,70 @@ public class SphericalHarmonics_LongTermStations_FullSpectral_multi {
         }
 
         System.gc();
-        int threads = Runtime.getRuntime().availableProcessors();
-        threads = 1;
-        ExecutorService service = Executors.newFixedThreadPool(threads);
-        List<Future<Void>> futures = new ArrayList<Future<Void>>();
-
-        System.out.println("Processing PCA - Multi-Threaded");
+    
         for (int month = 0; month <= 12; month++) {
             final int month_f = month;
-             
-            Callable<Void> callable = new Callable<Void>() {
-                public Void call() throws Exception {
-                    System.out.println("Starting - Processing Month: " + month_f);
-                    Quartet<Integer, Complex[], Complex[][], double[]> results;
-                          
-                    String monthlyOutput = output + "_month/monthly_" + month_f + ".serialized";
-                    File monthlyFile = new File(monthlyOutput);
-                    if (!monthlyFile.exists()) {
-                    
-                        ComplexDoubleMatrix qRealizationsMatrix = ApacheMath3ToJblas(qRealizations_m.get(month_f));
-                        ComplexDoubleMatrix qRealizations_trans = qRealizationsMatrix.transpose().conj();
-                        ComplexDoubleMatrix R_hat_s = (qRealizationsMatrix.mmul(qRealizations_trans)).mul(1/(datesSize.get(month_f) + 0.0));
+            System.out.println("Starting - Processing Month: " + month_f);
+            Quartet<Integer, Complex[], Complex[][], double[]> results;
 
-                        System.out.println("Processing PCA on matrix  (" + R_hat_s.rows + " X " + R_hat_s.columns + ")");
+            String monthlyOutput = output + "_month/monthly_" + month_f + ".serialized";
+            File monthlyFile = new File(monthlyOutput);
+            if (!monthlyFile.exists()) {
 
-                        Stopwatch timer = new Stopwatch().start();
-                        PcaCovJBlas pca = new PcaCovJBlas(R_hat_s);
-                        System.out.println("Calculations completed in: " + timer.stop());
+                ComplexDoubleMatrix qRealizationsMatrix = ApacheMath3ToJblas(qRealizations_m.get(month_f));
+                ComplexDoubleMatrix qRealizations_trans = qRealizationsMatrix.transpose().conj();
+                ComplexDoubleMatrix R_hat_s = (qRealizationsMatrix.mmul(qRealizations_trans)).mul(1/(datesSize.get(month_f) + 0.0));
 
-                        // We now have our eigenValues and eigenVectorss
-                        double varExpCutoff = 0.99;
-                        Complex[] eigenValues = pca.GetEigenValuesMath3();
-                        Complex[][] eigenVectors = pca.GetEigenVectorsMath3();                
-                        double[] varExplained = pca.GetSumOfVarianceExplained();
+                System.out.println("Processing PCA on matrix  (" + R_hat_s.rows + " X " + R_hat_s.columns + ")");
 
-                        // If we are only getting a certain number of PCAs
-                        if (varExpCutoff <= 1.0) {
-                            // find where the cutoff is
-                            int cutOffLocation = 0;
-                            for (int i = 0; i < varExplained.length; i++) {
-                                cutOffLocation = i;
-                                if (varExplained[i] >= varExpCutoff) {
-                                    System.out.println("    cuttoff: " + cutOffLocation + " of " + (varExplained.length-1));
-                                    break;
-                                }
-                            }
-                            eigenVectors = ComplexArray.Subset(eigenVectors, 0, eigenVectors.length-1, 0, cutOffLocation);
-                            eigenVectors = ComplexArray.Transpose(eigenVectors);
-                            eigenValues = ComplexArray.Subset(eigenValues, 0, cutOffLocation);
-                            varExplained = DoubleArray.Subset(varExplained, 0, cutOffLocation);
+                Stopwatch timer = new Stopwatch().start();
+                PcaCovJBlas pca = new PcaCovJBlas(R_hat_s);
+                System.out.println("Calculations completed in: " + timer.stop());
+
+                // We now have our eigenValues and eigenVectorss
+                double varExpCutoff = 0.99;
+                Complex[] eigenValues = pca.GetEigenValuesMath3();
+                Complex[][] eigenVectors = pca.GetEigenVectorsMath3();                
+                double[] varExplained = pca.GetSumOfVarianceExplained();
+
+                // If we are only getting a certain number of PCAs
+                if (varExpCutoff <= 1.0) {
+                    // find where the cutoff is
+                    int cutOffLocation = 0;
+                    for (int i = 0; i < varExplained.length; i++) {
+                        cutOffLocation = i;
+                        if (varExplained[i] >= varExpCutoff) {
+                            System.out.println("    cuttoff: " + cutOffLocation + " of " + (varExplained.length-1));
+                            break;
                         }
-
-                        System.out.println("Finished - Processing Month: " + month_f);
-                        results = Quartet.with(month_f, eigenValues, eigenVectors, varExplained);
-                        Utilities.SerializeObject(results, monthlyOutput);
-                    } else {
-                        System.out.println("Loading pre-generated month: " + month_f);
-                        results = (Quartet<Integer, Complex[], Complex[][], double[]>) Utilities.LoadSerializedObject(monthlyOutput);
                     }
-                    
-                    // Save results
-                    pcaResults.setEigenValues(month_f, results.getValue1());
-                    pcaResults.setEigenVectors(month_f, results.getValue2());
-                    pcaResults.setEigenVarianceExplained(month_f, results.getValue3());      
-                    return null;
-                }};
-            futures.add(service.submit(callable));
+                    eigenVectors = ComplexArray.Subset(eigenVectors, 0, eigenVectors.length-1, 0, cutOffLocation);
+                    eigenVectors = ComplexArray.Transpose(eigenVectors);
+                    eigenValues = ComplexArray.Subset(eigenValues, 0, cutOffLocation);
+                    varExplained = DoubleArray.Subset(varExplained, 0, cutOffLocation);
+                }
+
+                System.out.println("Finished - Processing Month: " + month_f);
+                results = Quartet.with(month_f, eigenValues, eigenVectors, varExplained);
+                Utilities.SerializeObject(results, monthlyOutput);
+            } else {
+                System.out.println("Loading pre-generated month: " + month_f);
+                results = (Quartet<Integer, Complex[], Complex[][], double[]>) Utilities.LoadSerializedObject(monthlyOutput);
+            }
+
+            // Save results
+            pcaResults.setEigenValues(month_f, results.getValue1());
+            pcaResults.setEigenVectors(month_f, results.getValue2());
+            pcaResults.setEigenVarianceExplained(month_f, results.getValue3());  
+
         }
-            
-        // Wait for the threads to finish and then save all the results
-        service.shutdown();
-        service.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-
-
-
         Utilities.SerializeObject(pcaResults, output);
     }
     
     public static void main(String args[]) throws Exception {   
-        SphericalHarmonics_InputParser in = new SphericalHarmonics_InputParser(args, SphericalHarmonics_LongTermStations_FullSpectral_multi.class.getName());
+        SphericalHarmonics_InputParser in = new SphericalHarmonics_InputParser(args, SphericalHarmonics_LongTermStations_FullSpectral_multi1.class.getName());
         if (in.InputsCorrect()) {
-            SphericalHarmonics_LongTermStations_FullSpectral_multi s = new SphericalHarmonics_LongTermStations_FullSpectral_multi(
+            SphericalHarmonics_LongTermStations_FullSpectral_multi1 s = new SphericalHarmonics_LongTermStations_FullSpectral_multi1(
                     in.q, in.input, in.variable, in.time
                     , in.lowerDateCutoff, in.upperDateCutoff
                     , in.startDate, in.endDate, in.normalize

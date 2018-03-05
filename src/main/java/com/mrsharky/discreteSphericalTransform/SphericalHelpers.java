@@ -16,8 +16,6 @@ import static com.mrsharky.helpers.Utilities.RadiansToLongitude;
 import static com.mrsharky.helpers.Utilities.linspace;
 import com.svengato.math.HalfInteger;
 import com.svengato.math.Wigner3jSymbol;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.math3.complex.Complex;
 
 /**

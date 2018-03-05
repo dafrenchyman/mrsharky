@@ -58,13 +58,13 @@ public class SphericalHarmonics_Results implements Serializable {
     public void setGridBoxAnomalyVariance(int month, double[][] gridBoxAnomalyVariance) { _gridBoxAnomalyVariance.put(month, gridBoxAnomalyVariance); }
     public double[][] getGridBoxAnomalyVariance(int month) { return _gridBoxAnomalyVariance.get(month); }
     
-    public void setEigenValues(int month, Complex[] eigenValues) { _eigenValues.put(month, eigenValues); }
+    public synchronized void setEigenValues(int month, Complex[] eigenValues) { _eigenValues.put(month, eigenValues); }
     public Complex[] getEigenValues(int month) { return _eigenValues.get(month); }
     
-    public void setEigenVectors(int month, Complex[][] eigenVectors) { _eigenVectors.put(month, eigenVectors); }
+    public synchronized void setEigenVectors(int month, Complex[][] eigenVectors) { _eigenVectors.put(month, eigenVectors); }
     public Complex[][] getEigenVectors(int month) { return _eigenVectors.get(month); }
     
-    public void setEigenVarianceExplained(int month, double[] varExplained) { _varianceExplained.put(month, varExplained); }
+    public synchronized void setEigenVarianceExplained(int month, double[] varExplained) { _varianceExplained.put(month, varExplained); }
     public double[] getEigenVarianceExplained(int month) { return _varianceExplained.get(month); }
     
     public void setRollingGridBoxAnomVar(int month, int year, double[][] rollGridBoxAnomVar) { _rollingGridBoxAnomVar.put(Pair.with(month, year), rollGridBoxAnomVar); }
