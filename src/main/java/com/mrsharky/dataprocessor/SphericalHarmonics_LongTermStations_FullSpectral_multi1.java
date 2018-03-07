@@ -302,7 +302,7 @@ public class SphericalHarmonics_LongTermStations_FullSpectral_multi1 {
             pcaResults.setEigenValues(month_f, results.getValue1());
             pcaResults.setEigenVectors(month_f, results.getValue2());
             pcaResults.setEigenVarianceExplained(month_f, results.getValue3());  
-
+            System.gc();
         }
         Utilities.SerializeObject(pcaResults, output);
     }

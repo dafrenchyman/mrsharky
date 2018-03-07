@@ -11,7 +11,7 @@ package com.mrsharky.climate.sphericalHarmonic.spark;
 import com.mrsharky.climate.sphericalHarmonic.AreasForGrid;
 import com.mrsharky.climate.sphericalHarmonic.common.TimeseriesResults;
 import com.mrsharky.climate.sphericalHarmonic.common.Pca_EigenValVec;
-import com.mrsharky.dataprocessor.old.SphericalHarmonics_PcaResults;
+import com.mrsharky.dataprocessor.SphericalHarmonics_Results;
 import com.mrsharky.discreteSphericalTransform.InvDiscreteSphericalTransform;
 import com.mrsharky.discreteSphericalTransform.SphericalHarmonic;
 import com.mrsharky.helpers.DoubleArray;
@@ -33,10 +33,8 @@ import org.apache.commons.math3.complex.Complex;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
-import org.javatuples.Pair;
 import org.javatuples.Quartet;
 import org.javatuples.Quintet;
-import org.javatuples.Triplet;
 
 /**
  * 
@@ -55,9 +53,9 @@ public class Climate_PcaStations_IndivDates {
         StationSelectionResults stationData = (StationSelectionResults) LoadSerializedObject(stationDataLocation);
         
         // Load the pcaData
-        SphericalHarmonics_PcaResults pcaData = (SphericalHarmonics_PcaResults) LoadSerializedObject(pcaDataLocation);
-        q = q < 0 ? pcaData.GetQ() : q;
-        if ( q > pcaData.GetQ() ) {
+        SphericalHarmonics_Results pcaData = (SphericalHarmonics_Results) LoadSerializedObject(pcaDataLocation);
+        q = q < 0 ? pcaData.getQ() : q;
+        if ( q > pcaData.getQ() ) {
             throw new Exception("Submitted q is greater than Q from the PCA data");
         }
         
@@ -79,7 +77,7 @@ public class Climate_PcaStations_IndivDates {
         Map<Integer, Map<Integer, InvDiscreteSphericalTransform>> eigenInvDst = new HashMap<Integer, Map<Integer, InvDiscreteSphericalTransform>>();
         
         // Calculate the area
-        double[][] gridBox = pcaData.GetGridBoxAnomalyVariance(0);
+        double[][] gridBox = pcaData.getGridBoxAnomalyVariance(0);
         AreasForGrid areasForGrid = new AreasForGrid(gridBox.length,gridBox[0].length,1.0);
         final double[][] areaFraction = DoubleArray.Multiply(areasForGrid.GetAreas(), 1.0/(Math.PI*4.0));
            
@@ -99,18 +97,17 @@ public class Climate_PcaStations_IndivDates {
             
             // Pre process some eigenvalue and eigenvector stuff
             eigenSpherical.put(month, new HashMap<Integer, SphericalHarmonic>());
-            eigenInvDst.put(month, new HashMap<Integer, InvDiscreteSphericalTransform>());
-            
+            eigenInvDst.put(month, new HashMap<Integer, InvDiscreteSphericalTransform>());    
             for (int e = 0; e < numEigen; e++) {
                 Complex[] currEigenVector = eigenVectors_f[e];
-                SphericalHarmonic currEigenSpherical = new SphericalHarmonic(currEigenVector, true);
+                SphericalHarmonic currEigenSpherical = new SphericalHarmonic(currEigenVector, false);
                 InvDiscreteSphericalTransform invDst = new InvDiscreteSphericalTransform(currEigenSpherical);
                 eigenSpherical.get(month).put(e, currEigenSpherical);
                 eigenInvDst.get(month).put(e, invDst);
             }      
             
             // Get the standard deviation for the gridboxes
-            double[][] gridBoxAnomSd =  DoubleArray.Power(pcaData.GetGridBoxAnomalyVariance(month), 0.5);
+            double[][] gridBoxAnomSd =  DoubleArray.Power(pcaData.getGridBoxAnomalyVariance(month), 0.5);
                         
             for (Date date : monthDates) {
                 int year = (date.getYear()+1900);
@@ -139,8 +136,7 @@ public class Climate_PcaStations_IndivDates {
                         int l = row.getValue3();
                         Complex S_lm = row.getValue4();
                         finalStationHarmonic.SetHarmonic(k, l, S_lm);
-                    }
-                    
+                    }     
 
                     // Save the harmonic to disk
                     Utilities.SerializeObject(finalStationHarmonic.GetHalfCompressedSpectra(), currResultsSave);

@@ -6,6 +6,7 @@
 
 package com.mrsharky.climate.sphericalHarmonic.common;
 
+import com.mrsharky.dataprocessor.SphericalHarmonics_Results;
 import com.mrsharky.dataprocessor.old.SphericalHarmonics_PcaResults;
 import com.mrsharky.helpers.ComplexArray;
 import com.mrsharky.helpers.DoubleArray;
@@ -60,6 +61,32 @@ public class Pca_EigenValVec implements Serializable {
         return value;
     }
     
+    public Pca_EigenValVec(SphericalHarmonics_Results pcaData, double varExpCutoff) throws Exception {
+        _eigenVectors = new HashMap<Integer, Complex[][]>();
+        _eigenValues = new HashMap<Integer, Complex[]>();
+        _varExplained = new HashMap<Integer, double[]>();
+        
+        int months[] = new int[]{0,1,2,3,4,5,6,7,8,9,10,11,12};
+        for (int month : months) {
+            Complex[][] eigenVectors = pcaData.getEigenVectors(month);
+            Complex[] eigenValues = pcaData.getEigenValues(month);
+            double[] varExplained = pcaData.getEigenVarianceExplained(month);
+              
+            Triplet<Complex[][], Complex[], double[]> Eigens = CutoffVarExplained(varExpCutoff, 
+                    eigenVectors,
+                    eigenValues,
+                    varExplained);
+            
+            eigenVectors = Eigens.getValue0();
+            eigenValues = Eigens.getValue1();
+            varExplained = Eigens.getValue2();
+            
+            _eigenVectors.put(month, eigenVectors);
+            _eigenValues.put(month, eigenValues);
+            _varExplained.put(month, varExplained);
+        }
+    }
+    
     
     public Pca_EigenValVec(SphericalHarmonics_PcaResults pcaData, double varExpCutoff) throws Exception {
         _eigenVectors = new HashMap<Integer, Complex[][]>();
@@ -69,7 +96,6 @@ public class Pca_EigenValVec implements Serializable {
         int months[] = new int[]{0,1,2,3,4,5,6,7,8,9,10,11,12};
         
         for (int month : months) {
-            System.out.println("Processing month: " + month);
             Complex[][] eigenVectors = pcaData.GetEigenVectors(month);
             Complex[] eigenValues = pcaData.GetEigenvalues(month);
             double[] varExplained = pcaData.GetVarianceExplained(month);

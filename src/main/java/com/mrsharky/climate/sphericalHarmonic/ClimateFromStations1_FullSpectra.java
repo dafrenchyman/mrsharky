@@ -97,7 +97,7 @@ public class ClimateFromStations1_FullSpectra {
                 InvDiscreteSphericalTransform invDst = new InvDiscreteSphericalTransform(currEigenSpherical);
                 eigenSpherical.put(e, currEigenSpherical);
                 eigenInvDst.put(e, invDst);
-            }      
+            }    
             
             double[][] gridBoxAnomSd =  DoubleArray.Power(pcaData.getGridBoxAnomalyVariance(month), 0.5);
             

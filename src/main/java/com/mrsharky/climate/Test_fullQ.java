@@ -8,6 +8,7 @@ package com.mrsharky.climate;
 import com.mrsharky.climate.nearestNeighbor.NetCdfGlobalAverageSpectral;
 import com.mrsharky.climate.sphericalHarmonic.ClimateFromStations1;
 import com.mrsharky.climate.sphericalHarmonic.ClimateFromStations1_FullSpectra;
+import com.mrsharky.climate.sphericalHarmonic.spark.Climate_PcaStations_IndivDates;
 import com.mrsharky.dataprocessor.SphericalHarmonics_LongTermStations;
 import com.mrsharky.dataprocessor.SphericalHarmonics_LongTermStations_FullSpectral_multi;
 import com.mrsharky.dataprocessor.SphericalHarmonics_LongTermStations_FullSpectral_multi1;
@@ -147,7 +148,6 @@ public class Test_fullQ {
             }
         }
         
-        
         // Other stuff
         if (true) {
             for (Pair<String, String> currBaseline : baselines) {
@@ -277,7 +277,7 @@ public class Test_fullQ {
                                             }
 
                                             // Full Harmonic
-                                            if (false) {
+                                            if (true) {
                                                 String finalOutput;
                                                 if (halfPca) {
                                                     finalOutput = "Results/NewFinal_global/" + 
@@ -291,7 +291,6 @@ public class Test_fullQ {
                                                         "_results.csv";
                                                 }
 
-
                                                 File outputFile = new File(finalOutput);
 
                                                 //System.setProperty("verbose", "true");
@@ -300,6 +299,7 @@ public class Test_fullQ {
                                                      String args2 = 
                                                              "--eof \""+ pcaDataset + "\" " +
                                                              "--q " + -1 + " " +
+                                                             "--createSpark " + 
                                                              "--output \"" + finalOutput + "\" " +
                                                              "--varExplained \"" + currVarExplained + "\" " +
                                                              (normal ? " --normalized " : "") + 
@@ -309,7 +309,7 @@ public class Test_fullQ {
                                                      if (halfPca) {
                                                         ClimateFromStations1.main(arguments);
                                                      } else {
-                                                        ClimateFromStations1_FullSpectra.main(arguments); 
+                                                        Climate_PcaStations_IndivDates.main(arguments); 
                                                      }
                                                 }
                                             }

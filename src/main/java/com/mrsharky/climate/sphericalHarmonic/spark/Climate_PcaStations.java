@@ -12,6 +12,7 @@ import com.mrsharky.climate.sphericalHarmonic.AreasForGrid;
 import com.mrsharky.climate.sphericalHarmonic.ClimateFromStations_InputParser;
 import com.mrsharky.climate.sphericalHarmonic.common.TimeseriesResults;
 import com.mrsharky.climate.sphericalHarmonic.common.Pca_EigenValVec;
+import com.mrsharky.dataprocessor.SphericalHarmonics_Results;
 import com.mrsharky.dataprocessor.old.SphericalHarmonics_PcaResults;
 import com.mrsharky.discreteSphericalTransform.InvDiscreteSphericalTransform;
 import com.mrsharky.discreteSphericalTransform.SphericalHarmonic;
@@ -50,7 +51,7 @@ public class Climate_PcaStations {
         StationSelectionResults stationData = (StationSelectionResults) LoadSerializedObject(stationDataLocation);
         
         // Load the pcaData
-        SphericalHarmonics_PcaResults pcaData = (SphericalHarmonics_PcaResults) LoadSerializedObject(pcaDataLocation);
+        SphericalHarmonics_Results pcaData = (SphericalHarmonics_Results) LoadSerializedObject(pcaDataLocation);
         
         // Setup Spark
         _spark = CreateDefaultSparkSession(this.getClass().getName());
@@ -133,12 +134,12 @@ public class Climate_PcaStations {
         
         // Run the calculations
         TimeseriesResults finalResults = new TimeseriesResults();
-        double[][] gridBox = pcaData.GetGridBoxAnomalyVariance(0);
+        double[][] gridBox = pcaData.getGridBoxAnomalyVariance(0);
         AreasForGrid areasForGrid = new AreasForGrid(gridBox.length,gridBox[0].length,1.0);
         final double[][] areaFraction = DoubleArray.Multiply(areasForGrid.GetAreas(), 1.0/(Math.PI*4.0));
          
         for (int month : stationData.GetMonths()) {
-            double[][] gridBoxAnomSd =  DoubleArray.Power(pcaData.GetGridBoxAnomalyVariance(month), 0.5);
+            double[][] gridBoxAnomSd =  DoubleArray.Power(pcaData.getGridBoxAnomalyVariance(month), 0.5);
             
             if (availableDates.containsKey(month)) {
                 List<Date> dates = availableDates.get(month).stream().sorted().collect(Collectors.toList());;
