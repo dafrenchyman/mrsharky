@@ -6,7 +6,6 @@
 package com.mrsharky.discreteSphericalTransform;
 
 import static com.mrsharky.discreteSphericalTransform.Helpers.GenerateRandomSphericalHarmonic;
-import com.mrsharky.helpers.ComplexArray;
 import com.mrsharky.helpers.DoubleArray;
 import org.apache.commons.math3.complex.Complex;
 import org.junit.After;
@@ -130,9 +129,7 @@ public class SphericalHarmonicTest {
     @Test
     public void testConjugate() throws Exception {
         int q = 5;
-        
-        
-        
+ 
         // Test for oscilating sign (l = odd)
         {
             int k = 3;

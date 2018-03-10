@@ -20,7 +20,6 @@ import com.mrsharky.helpers.DoubleArray;
 import static com.mrsharky.helpers.SparkUtils.CreateDefaultSparkSession;
 import static com.mrsharky.helpers.SparkUtils.PrintSparkSetting;
 import static com.mrsharky.helpers.Utilities.LoadSerializedObject;
-import static com.mrsharky.helpers.Utilities.SerializeObject;
 import com.mrsharky.spark.SetupSparkTest;
 import com.mrsharky.stations.StationSelectionResults;
 import java.util.ArrayList;
@@ -36,6 +35,7 @@ import org.apache.spark.sql.SparkSession;
 import org.javatuples.Pair;
 import org.javatuples.Quartet;
 import org.javatuples.Quintet;
+import static com.mrsharky.helpers.Utilities.SerializeObjectLocal;
 
 /**
  * 

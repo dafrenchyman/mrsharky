@@ -11,7 +11,6 @@ package com.mrsharky.stations;
 import static com.mrsharky.helpers.SparkUtils.CreateDefaultSparkSession;
 import static com.mrsharky.helpers.SparkUtils.PrintSparkSetting;
 import static com.mrsharky.helpers.Utilities.HaversineDistance;
-import static com.mrsharky.helpers.Utilities.SerializeObject;
 import com.mrsharky.spark.SetupSparkTest;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -32,6 +31,7 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.javatuples.Pair;
+import static com.mrsharky.helpers.Utilities.SerializeObjectLocal;
 
 /**
  * 
@@ -389,7 +389,7 @@ public abstract class HolePunchSelection {
             BaselineData.unpersist();
         }
         
-        SerializeObject(finalResults, destination + "/finalStations_Results.serialized");
+        SerializeObjectLocal(finalResults, destination + "/finalStations_Results.serialized");
         if (saveCsv) {
             finalResults.SaveToCsv(destination + "/finalStation_Results.csv");
         }

@@ -12,6 +12,7 @@ import com.mrsharky.climate.sphericalHarmonic.spark.Climate_PcaStations_IndivDat
 import com.mrsharky.dataprocessor.SphericalHarmonics_LongTermStations;
 import com.mrsharky.dataprocessor.SphericalHarmonics_LongTermStations_FullSpectral_multi;
 import com.mrsharky.dataprocessor.SphericalHarmonics_LongTermStations_FullSpectral_multi1;
+import com.mrsharky.helpers.SparkMiniCluster;
 import static com.mrsharky.helpers.Utilities.recursiveDelete;
 import com.mrsharky.stations.ghcn.GhcnV3;
 import com.mrsharky.stations.netcdf.NetCdf_NearestLocations;
@@ -55,17 +56,20 @@ public class Test_fullQ {
         int pointsQ = 102;
         
         List<Integer> qs = new ArrayList<Integer>();
-        //qs.add(0);
+        qs.add(0);
         //qs.add(10);
         //qs.add(20);
         //qs.add(30);
         //qs.add(40);
         //qs.add(50);
         //qs.add(60);
-        qs.add(102);
+        //qs.add(102);
         boolean[] normalized = new boolean[]{ false };
         
         List<String> ghcnStationList = new ArrayList<String>();
+        
+        SparkMiniCluster smc = new SparkMiniCluster();
+        smc.setUp();
         
         // Generate Baselines
         if (false) {
@@ -285,10 +289,11 @@ public class Test_fullQ {
                                                         currPointDataset + "/VarExplained=" + currVarExplained + 
                                                         "_results.csv";
                                                 } else {
-                                                    finalOutput = "Results/NewFinal_globalFullPca/" + 
+                                                    /*finalOutput = "Results/NewFinal_globalFullPca/" + 
                                                         pcaFilename + "/" +
                                                         currPointDataset + "/VarExplained=" + currVarExplained + 
-                                                        "_results.csv";
+                                                        "_results.csv";*/
+                                                    finalOutput = "hdfs:///Results/";
                                                 }
 
                                                 File outputFile = new File(finalOutput);
@@ -322,5 +327,6 @@ public class Test_fullQ {
                 }
             }
         }
+        smc.tearDown();
     }
 }

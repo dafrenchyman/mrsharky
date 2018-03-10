@@ -54,8 +54,8 @@ public class PcaCovJBlasTest {
     @Test
     public void testMultithreading() throws Exception {
         int threads = Runtime.getRuntime().availableProcessors();
-        int numRow = 400;
-        int numCol = 400;
+        int numRow = 50;
+        int numCol = 50;
         ExecutorService service = Executors.newFixedThreadPool(threads);
         List<Future<PcaCovJBlas>> futures = new ArrayList<Future<PcaCovJBlas>>();
 

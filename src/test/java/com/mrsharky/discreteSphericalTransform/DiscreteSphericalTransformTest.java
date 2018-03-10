@@ -150,7 +150,6 @@ public class DiscreteSphericalTransformTest {
         }  
     }
     
-    
     @Test
     public void testGridboxVsCoordinate() throws Exception {
         System.out.println("Testing: " + Thread.currentThread().getStackTrace()[1].getMethodName());
@@ -227,10 +226,6 @@ public class DiscreteSphericalTransformTest {
             }
         }  
     }
-    
-    
-    
-    
     
     /**
      * Test Spatial to spectral and back

@@ -19,6 +19,7 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
@@ -33,6 +34,9 @@ import org.apache.commons.math3.linear.ArrayFieldVector;
 import org.apache.commons.math3.linear.FieldMatrix;
 import org.apache.commons.math3.linear.FieldVector;
 import org.apache.commons.math3.linear.RealVector;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 
 /**
  *
@@ -326,7 +330,30 @@ public class Utilities {
         return Math.sqrt(distance);
     }
     
+    public static boolean checkIfFileExists(String output) throws IOException {
+        boolean fileExists = false;
+        if (output.toUpperCase().startsWith("HDFS")) {
+            Configuration conf = new Configuration();
+            conf.get("fs.defaultFS");
+            FileSystem fs = FileSystem.get(URI.create(output), conf);
+            Path path = new Path(output);
+            fileExists = fs.exists(path);
+        } else {
+            File resultsFile = new File(output);
+            fileExists = resultsFile.exists();
+        }
+        return fileExists;
+    }
+    
     public static void SerializeObject(Object classToSave, String output) {
+        if (output.toUpperCase().startsWith("HDFS")) {
+            SerializeObjectHdfs(classToSave, output);
+        } else {
+            SerializeObjectLocal(classToSave, output);
+        }
+    }
+    
+    public static void SerializeObjectLocal(Object classToSave, String output) {
         try {
             System.out.println("Saving results to: " + output);
             
@@ -348,11 +375,60 @@ public class Utilities {
         }
     }
     
+    public static void SerializeObjectHdfs(Object classToSave, String output) {
+        try {
+            System.out.println("Saving results to: " + output);
+            Configuration conf = new Configuration();
+            conf.get("fs.defaultFS");
+            FileSystem fs = FileSystem.get(URI.create(output), conf);
+            OutputStream buffer = fs.create(new Path(output));
+            ObjectOutputStream out = new ObjectOutputStream(buffer);
+            out.writeObject(classToSave);
+            out.close();
+            fs.close();
+            System.out.println("Finished saving results");
+        } catch (IOException i) {
+            i.printStackTrace();
+        }
+    }
+    
     public static Object LoadSerializedObject(String input) {
+        Object output = null;
+        if (input.toUpperCase().startsWith("HDFS")) {
+            output = LoadSerializedObjectHdfs(input);
+        } else {
+            output = LoadSerializedObjectLocal(input);
+        }
+        return output;
+    }
+    
+    public static Object LoadSerializedObjectLocal(String input) {
         Object output = null;
         try {
             System.out.println("Loading object from: " + input);
             FileInputStream fileIn = new FileInputStream(input);
+            InputStream buffer = new BufferedInputStream(fileIn);
+            ObjectInputStream in = new ObjectInputStream(buffer);
+            output = in.readObject();
+            in.close();
+            fileIn.close();
+            System.out.println("Finished loading object");
+        } catch (IOException i) {
+            i.printStackTrace();
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(Utilities.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return output;
+    }
+    
+    public static Object LoadSerializedObjectHdfs(String input) {
+        Object output = null;
+        try {
+            System.out.println("Loading object from: " + input);
+            Configuration conf = new Configuration();
+            conf.get("fs.defaultFS");
+            FileSystem fs = FileSystem.get(URI.create(input), conf);
+            InputStream fileIn =  fs.open(new Path(input));
             InputStream buffer = new BufferedInputStream(fileIn);
             ObjectInputStream in = new ObjectInputStream(buffer);
             output = in.readObject();

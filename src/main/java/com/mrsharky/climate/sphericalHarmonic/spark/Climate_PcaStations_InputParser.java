@@ -7,7 +7,7 @@ package com.mrsharky.climate.sphericalHarmonic.spark;
 
 import com.mrsharky.helpers.InputParser_Abstract;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 
 /**
@@ -23,6 +23,7 @@ public class Climate_PcaStations_InputParser extends InputParser_Abstract {
     public double varExplained;
     public boolean normalized;
     public boolean createSpark;
+    public int partitions;
     
     public Climate_PcaStations_InputParser(String[] args, String className) {
         super(args, className);
@@ -38,7 +39,7 @@ public class Climate_PcaStations_InputParser extends InputParser_Abstract {
         normalized = line.hasOption("normalized") ? true : false;
         q = line.hasOption("q") ? Integer.parseInt(line.getOptionValue("q")) : -1;
         createSpark = line.hasOption("createSpark");
-        
+        partitions = line.hasOption("partitions") ? Integer.parseInt(line.getOptionValue("partitions")) : 24;
         _inputsCorrect = true;
     }
     
@@ -47,39 +48,46 @@ public class Climate_PcaStations_InputParser extends InputParser_Abstract {
         // create the Options
         Options options = new Options();
         
-        options.addOption(Option.builder("e")
-                .longOpt("eof").hasArg().required()
-                .argName("file")
-                .desc("EOF Java Serialized data")
-                .build());
-        options.addOption(Option.builder("s")
-                .longOpt("station").hasArg().required()
-                .argName("file")
-                .desc("Station Java Serialized data")
-                .build());
-        options.addOption(Option.builder("o")
-                .longOpt("output").hasArg().required()
-                .argName("file")
-                .desc("Output CSV file")
-                .build());
-        options.addOption(Option.builder("v")
-                .longOpt("varExplained").hasArg().required()
-                .argName("double")
-                .desc("Variance explained cut-off (0.0 - 1.0)")
-                .build());
-        options.addOption(Option.builder("n")
-                .longOpt("normalized")
-                .desc("Normalize the data")
-                .build());
-        options.addOption(Option.builder("q").hasArg()
-                .longOpt("q")
-                .required(false)
-                .desc("Q truncation to use. If none given, defaults to that to the one from the eof dataset")
-                .build());
-        options.addOption(Option.builder("s").required(false)
-                .longOpt("createSpark")
-                .desc("Create a spark session (use this option if you don't have a spark cluster to run the code locally)")
-                .build());
+        options.addOption(OptionBuilder
+                .withLongOpt("eof").hasArg(true).isRequired(true)
+                .withArgName("file")
+                .withDescription("EOF Java Serialized data")
+                .create('e'));
+        options.addOption(OptionBuilder
+                .withLongOpt("station").hasArg(true).isRequired(true)
+                .withArgName("file")
+                .withDescription("Station Java Serialized data")
+                .create('s'));
+        options.addOption(OptionBuilder
+                .withLongOpt("output").hasArg(true).isRequired(true)
+                .withArgName("file")
+                .withDescription("Output CSV file")
+                .create('o'));
+        options.addOption(OptionBuilder
+                .withLongOpt("varExplained").hasArg(true).isRequired(true)
+                .withArgName("double")
+                .withDescription("Variance explained cut-off (0.0 - 1.0)")
+                .create('v'));
+        options.addOption(OptionBuilder
+                .withLongOpt("normalized").hasArg(false).isRequired(false)
+                .withDescription("Normalize the data")
+                .create('n'));
+        options.addOption(OptionBuilder
+                .withLongOpt("q").hasArg(true).isRequired(false)
+                .withArgName("int")
+                .withDescription("Q truncation to use. If none given, defaults to that to the one from the eof dataset")
+                .create('q'));
+        options.addOption(OptionBuilder
+                .withLongOpt("createSpark").hasArg(false).isRequired(false)
+                .withDescription("Create a spark session (use this option if you don't have a spark cluster to run the code locally)")
+                .create('s'));
+        options.addOption(OptionBuilder
+                .withLongOpt("partitions").hasArg(true).isRequired(false)
+                .withArgName("int")
+                .withDescription("Number of spark partitions to split data by")
+                .create('p'));
+        
+        
         return options;
     }
 }

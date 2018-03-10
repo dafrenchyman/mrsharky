@@ -318,7 +318,7 @@ public class SphericalHarmonics_LongTermStations_FullSpectral_multi {
 
                         System.out.println("Finished - Processing Month: " + month_f);
                         results = Quartet.with(month_f, eigenValues, eigenVectors, varExplained);
-                        Utilities.SerializeObject(results, monthlyOutput);
+                        Utilities.SerializeObjectLocal(results, monthlyOutput);
                     } else {
                         System.out.println("Loading pre-generated month: " + month_f);
                         results = (Quartet<Integer, Complex[], Complex[][], double[]>) Utilities.LoadSerializedObject(monthlyOutput);
@@ -339,7 +339,7 @@ public class SphericalHarmonics_LongTermStations_FullSpectral_multi {
 
 
 
-        Utilities.SerializeObject(pcaResults, output);
+        Utilities.SerializeObjectLocal(pcaResults, output);
     }
     
     public static void main(String args[]) throws Exception {   

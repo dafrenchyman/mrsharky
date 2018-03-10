@@ -86,8 +86,6 @@ public class SphericalHarmonicYTest {
     @Test
     public void testConjugate() throws Exception {
         
-        
-        
         AreasForGrid areasForGrid = new AreasForGrid(94,192,1.0);
         double[][] areaFraction = DoubleArray.Multiply(areasForGrid.GetAreas(), 1.0/(Math.PI*4.0));
         
@@ -114,7 +112,6 @@ public class SphericalHarmonicYTest {
         
     }
     
-    
     @Test
     public void testFirstHarmonic1() throws Exception {
         System.out.println("Starting Program");
@@ -122,7 +119,7 @@ public class SphericalHarmonicYTest {
         int lonPoints = 192;
         double[][] DATA = GenerateSinCosData(latPoints, lonPoints);
         
-        int q = 25;	
+        int q = 5;	
         
         double[][] randomStdDev = new double[latPoints][lonPoints];
         for (int i = 0; i < latPoints; i++) {
@@ -133,8 +130,7 @@ public class SphericalHarmonicYTest {
         
         AreasForGrid areasForGrid = new AreasForGrid(latPoints, lonPoints,1.0);
         double[][] areaFraction = DoubleArray.Multiply(areasForGrid.GetAreas(), 1.0/(Math.PI*4.0));
-
-        
+  
         //int Q = 5;
         DiscreteSphericalTransform dst = new DiscreteSphericalTransform(DATA, q, true);
         InvDiscreteSphericalTransform invShTrans1 = new InvDiscreteSphericalTransform(dst.GetSpectra());
@@ -158,7 +154,7 @@ public class SphericalHarmonicYTest {
     
     @Test
     public void testFirstHarmonic2() throws Exception {
-        int q = 10;
+        int q = 5;
 
         int obs = 1;
         
@@ -308,7 +304,6 @@ public class SphericalHarmonicYTest {
         
     }
     
-
     /**
      * Test of SetHalfCompressedSpectra method, of class SphericalHarmonicY.
      */

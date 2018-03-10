@@ -6,7 +6,6 @@
 package com.mrsharky.stations.netcdf;
 
 import com.mrsharky.dataprocessor.NetCdfLoader;
-import static com.mrsharky.helpers.Utilities.SerializeObject;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -15,6 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.javatuples.Pair;
+import static com.mrsharky.helpers.Utilities.SerializeObjectLocal;
 
 /**
  *
@@ -123,7 +123,7 @@ public class GridBoxVariance {
             GridBoxVariance s = new GridBoxVariance(
                     in.input, in.variable, in.time
                     , in.varianceNumYears );
-            SerializeObject(s.GetGridBoxAnomVar(), in.output);
+            SerializeObjectLocal(s.GetGridBoxAnomVar(), in.output);
         }
     }
 }

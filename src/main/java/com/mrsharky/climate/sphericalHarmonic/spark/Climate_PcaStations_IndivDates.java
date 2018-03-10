@@ -19,7 +19,6 @@ import static com.mrsharky.helpers.SparkUtils.CreateDefaultSparkSession;
 import static com.mrsharky.helpers.SparkUtils.PrintSparkSetting;
 import com.mrsharky.helpers.Utilities;
 import static com.mrsharky.helpers.Utilities.LoadSerializedObject;
-import static com.mrsharky.helpers.Utilities.SerializeObject;
 import com.mrsharky.spark.SetupSparkTest;
 import com.mrsharky.stations.StationSelectionResults;
 import java.io.File;
@@ -35,6 +34,7 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
 import org.javatuples.Quartet;
 import org.javatuples.Quintet;
+import static com.mrsharky.helpers.Utilities.SerializeObjectLocal;
 
 /**
  * 
@@ -47,7 +47,7 @@ public class Climate_PcaStations_IndivDates {
     
     private SparkSession _spark;
     public Climate_PcaStations_IndivDates(String pcaDataLocation, String stationDataLocation, int q,
-            double varExpCutoff, boolean normalize, String ResultsDestination, boolean createSpark) throws Exception {   
+            double varExpCutoff, boolean normalize, String ResultsDestination, boolean createSpark, int sparkPartitions) throws Exception {   
         
         // Load station data
         StationSelectionResults stationData = (StationSelectionResults) LoadSerializedObject(stationDataLocation);
@@ -91,7 +91,7 @@ public class Climate_PcaStations_IndivDates {
                  
             int numEigen = eigenValues_f.length;
             List<Date> monthDates = stationData.GetDates(month).stream()
-                    .filter(d -> d.getMonth() == currMonth)
+                    .filter(d -> d.getMonth() == currMonth && d.getYear()+1900 >= 1851)
                     .sorted()
                     .collect(Collectors.toList());
             
@@ -111,11 +111,9 @@ public class Climate_PcaStations_IndivDates {
                         
             for (Date date : monthDates) {
                 int year = (date.getYear()+1900);
-                SphericalHarmonic finalStationHarmonic = new SphericalHarmonic(q);
-                
+                SphericalHarmonic finalStationHarmonic = new SphericalHarmonic(q);             
                 String currResultsSave = ResultsDestination + "/Harmonics/month=" + month +"_year=" + year + ".serialized";
-                File resultsFile = new File(currResultsSave);
-                if (!resultsFile.exists()) {
+                if (!Utilities.checkIfFileExists(currResultsSave)) {
                     List<Quartet<Integer, Date, Integer, Integer>> rows = new ArrayList<Quartet<Integer, Date, Integer, Integer>>();
                     for (int k = 0; k <= q; k++) {
                         for (int l = 0; l <= k; l++) {
@@ -123,7 +121,7 @@ public class Climate_PcaStations_IndivDates {
                         }
                     }
 
-                    JavaRDD<Quartet<Integer, Date, Integer, Integer>> rddData = jsc.parallelize(rows, 24);
+                    JavaRDD<Quartet<Integer, Date, Integer, Integer>> rddData = jsc.parallelize(rows, sparkPartitions);
 
                     // Run the actual Spark job
                     GenerateHarmonics generateWeights = new GenerateHarmonics(eigenSpherical, eigenInvDst, stationData, Eigens, q, normalize);
@@ -166,7 +164,7 @@ public class Climate_PcaStations_IndivDates {
         Climate_PcaStations_InputParser parser = new Climate_PcaStations_InputParser(args, Climate_PcaStations_IndivDates.class.getName());
         if (parser.InputsCorrect()) {
             Climate_PcaStations_IndivDates netCdf = new Climate_PcaStations_IndivDates(parser.dataEof, 
-                    parser.dataStations, parser.q, parser.varExplained, parser.normalized, parser.output, parser.createSpark);
+                    parser.dataStations, parser.q, parser.varExplained, parser.normalized, parser.output, parser.createSpark, parser.partitions);
         }
     }
 }

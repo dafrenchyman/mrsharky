@@ -12,7 +12,6 @@ import com.mrsharky.dataAnalysis.PcaCovJBlas;
 import com.mrsharky.helpers.ComplexArray;
 import com.mrsharky.helpers.DoubleArray;
 import static com.mrsharky.helpers.JblasMatrixHelpers.ApacheMath3ToJblas;
-import static com.mrsharky.helpers.Utilities.SerializeObject;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -31,6 +30,7 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.complex.Complex;
 import org.javatuples.Pair;
 import org.jblas.ComplexDoubleMatrix;
+import static com.mrsharky.helpers.Utilities.SerializeObjectLocal;
 
 /**
  *
@@ -275,7 +275,7 @@ public class SphericalHarmonics_LongTermStations1 {
                 spatial.put(eigenCounter, currSpatial);
             }*/
         }
-        SerializeObject(pcaResults, output);
+        SerializeObjectLocal(pcaResults, output);
     }
     
     public static void main(String args[]) throws Exception {   

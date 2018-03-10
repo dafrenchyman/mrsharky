@@ -13,7 +13,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
@@ -38,14 +38,12 @@ public abstract class InputParser_Abstract {
 
         Options options = GenerateOptions();
         
-        if (!options.hasShortOption("h")) {
+        if (!options.hasOption("h")) {
             // Add the help menu option
-            options.addOption(Option.builder("h")
-                .longOpt("help").required(false)
-                .desc("Print this message")
-                .build());  
-        }
-        
+            options.addOption(OptionBuilder
+                .withLongOpt("help").hasArg(false).isRequired(false)
+                .withDescription("Print this message").create('h'));   
+        } 
 
         try {
             // parse the command line arguments

@@ -84,10 +84,10 @@ public class CalculateHarmonicTest {
         return new Complex(real, imag);
     }
     
-    //@Test
+    @Test
     public void testNonHarmonicFriendlyPoints() throws Exception {
         System.out.println("Testing: " + Thread.currentThread().getStackTrace()[1].getMethodName());
-        int q = 102;
+        int q = 5;
         int latNum = q+1;
         int lonNum = q*2;
         
@@ -180,10 +180,10 @@ public class CalculateHarmonicTest {
         System.out.println("Original: " + origValue + ", Rebuilt: " + value);
     }
     
-    //@Test
+    @Test
     public void testIncreasingFirstHarmonic() throws Exception {
         System.out.println("Testing: " + Thread.currentThread().getStackTrace()[1].getMethodName());
-        int q = 7;
+        int q = 5;
         int q_trunc = 0;
         int latNum = q+1;
         int lonNum = q*2;
@@ -263,13 +263,10 @@ public class CalculateHarmonicTest {
         DoubleArray.Print(results);
     }
     
-    
-    
-    
-    //@Test
+    @Test
     public void testIncreasingFirstHarmonicRandomPoints() throws Exception {
         System.out.println("Testing: " + Thread.currentThread().getStackTrace()[1].getMethodName());
-        int q = 7;
+        int q = 5;
         int q_trunc = 0;
         int latNum = q+1;
         int lonNum = q*2;
@@ -356,10 +353,10 @@ public class CalculateHarmonicTest {
         DoubleArray.Print(results);
     }
     
-    //@Test
+    @Test
     public void testIncreasingFirstHarmonicGoodPoints() throws Exception {
         System.out.println("Testing: " + Thread.currentThread().getStackTrace()[1].getMethodName());
-        int q = 7;
+        int q = 5;
         int q_trunc = 0;
         int latNum = q+1;
         int lonNum = q*2;
@@ -417,8 +414,8 @@ public class CalculateHarmonicTest {
         int counter = 0;
         for (int i = 0; i < lat.length; i++) {
             for (int j = 0; j < lon.length; j++) {
-                latPoints[counter] = lat[i];
-                lonPoints[counter] = lon[j];
+                latPoints[counter] = Utilities.LatitudeToRadians(lat[i]);
+                lonPoints[counter] = Utilities.LongitudeToRadians(lon[j]);
                 counter++;
             }
         }
@@ -456,23 +453,20 @@ public class CalculateHarmonicTest {
         DoubleArray.Print(results);
     }
     
-    
-    
-    
     /**
      * Test of Process method, of class CalculateHarmonic.
      */
     @Test
     public void testStrongFirstHarmRandomOther() throws Exception {
         System.out.println("Testing: " + Thread.currentThread().getStackTrace()[1].getMethodName());
-        int q = 7;
+        int q = 5;
         int q_truc = 0;
         int latNum = q+1;
         int lonNum = 2*q;
         int timePoints = 50;
         
         boolean useGriddedPredictors = false;
-        int numRandPoints = 1000; //latNum*lonNum;
+        int numRandPoints = 100; //latNum*lonNum;
         
         Random rand = new Random();
         rand.setSeed(12345);
@@ -607,10 +601,10 @@ public class CalculateHarmonicTest {
     /**
      * Test of Process method, of class CalculateHarmonic.
      */
-    //@Test
+    @Test
     public void testAngellKorshoverNetworkLocations() throws Exception {
         System.out.println("Testing: " + Thread.currentThread().getStackTrace()[1].getMethodName());
-        int q = 7;
+        int q = 5;
         
         SphericalHarmonic sh = new SphericalHarmonic(q);
         double originalFirstHarmValue = 20.0;
