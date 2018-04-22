@@ -200,7 +200,21 @@ public class DoubleArray {
         }
         return output;
     }
-
+    
+    public static String toCsvString(double[][] values) {
+        StringBuilder sb = new StringBuilder();
+        for (int row = 0; row < values.length; row++) {
+            for (int col = 0; col < values[0].length; col++) {
+                sb.append(values[row][col]);
+                if (col != values[0].length -1) {
+                    sb.append(",");
+                }
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+    
     public static void Print(double[][] values) {
         System.out.println(PrintToString(values));
     }

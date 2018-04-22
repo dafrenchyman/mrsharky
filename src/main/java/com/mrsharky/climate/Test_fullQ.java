@@ -10,6 +10,7 @@ import com.mrsharky.climate.sphericalHarmonic.ClimateFromStations1;
 import com.mrsharky.climate.sphericalHarmonic.ClimateFromStations1_FullSpectra;
 import com.mrsharky.climate.sphericalHarmonic.spark.Climate_PcaStations_IndivDates;
 import com.mrsharky.dataprocessor.SphericalHarmonics_LongTermStations;
+import com.mrsharky.dataprocessor.SphericalHarmonics_LongTermStations_FullSpectral_SaveSource;
 import com.mrsharky.dataprocessor.SphericalHarmonics_LongTermStations_FullSpectral_multi;
 import com.mrsharky.dataprocessor.SphericalHarmonics_LongTermStations_FullSpectral_multi1;
 import com.mrsharky.helpers.SparkMiniCluster;
@@ -43,26 +44,26 @@ public class Test_fullQ {
         //baselines.add(Pair.with("1960-12-31", "1990-12-31"));
         
         List<Pair<Integer, Integer>> gridBoxes = new ArrayList<Pair<Integer, Integer>>();        
-        gridBoxes.add(Pair.with(0, 0));
+        //gridBoxes.add(Pair.with(0, 0));
         //gridBoxes.add(Pair.with(5, 10));
-        gridBoxes.add(Pair.with(10, 20));
+        //gridBoxes.add(Pair.with(10, 20));
         //gridBoxes.add(Pair.with(15, 30));
-        //gridBoxes.add(Pair.with(20, 40));
+        gridBoxes.add(Pair.with(20, 40));
         //gridBoxes.add(Pair.with(40, 80));
         //gridBoxes.add(Pair.with(60, 120));
         
         boolean halfPca = false;
         
-        int pointsQ = 102;
+        int pointsQ = 30;
         
         List<Integer> qs = new ArrayList<Integer>();
-        qs.add(0);
+        //qs.add(0);
         //qs.add(10);
         //qs.add(20);
         //qs.add(30);
         //qs.add(40);
         //qs.add(50);
-        //qs.add(60);
+        qs.add(30);
         //qs.add(102);
         boolean[] normalized = new boolean[]{ false };
         
@@ -102,7 +103,7 @@ public class Test_fullQ {
         }
         
         // GHCN
-        if (true) {
+        if (false) {
             String sourceDir = "/media/dropbox/PhD/Reboot/Projects/ghcn_v3_new/ghcnm.tavg.latest.qca/ghcnm.v3.3.0.20171203/";
             String input = "ghcnm.tavg.v3.3.0.20171203.qca";
             String monthlyData = sourceDir + input + ".dat";
@@ -252,6 +253,37 @@ public class Test_fullQ {
                                                 SphericalHarmonics_LongTermStations_FullSpectral_multi1.main(arguments); 
                                             }
                                         }
+                                        
+                                        
+                                        // NcepData
+                                        if (true) {
+                                            String ncepPlots = "Results/pcaPlots/" +
+                                                        pcaFilename + 
+                                                        ".serialized";
+                                            
+                                            File ncepPlotsFile = new File(ncepPlots);
+                                            if (!ncepPlotsFile.exists()) {
+
+                                                String inputData = "Data/" + input;
+
+                                                String inputArgs =
+                                                    "--input \""+ inputData + "\" " +
+                                                    "--output \""+ ncepPlots + "\" " +
+                                                    "--variable \""+ ncepVariable + "\" " +
+                                                    "--q \"" + q + "\" " +
+                                                    "--lowerbaseline \"" + lowerBaseline + "\" " +
+                                                    "--upperbaseline \"" + upperBaseline + "\" " +
+                                                    "--startDate \"" + startDate + "\" " +
+                                                    "--endDate \"" + endDate + "\" " +
+                                                    (normal ? " --normalize " : "") +
+                                                    "--time \"" + ncepTime + "\"";
+
+                                                String[] arguments = inputArgs.split(" ");
+                                 
+                                                SphericalHarmonics_LongTermStations_FullSpectral_SaveSource.main(arguments); 
+                                            }
+                                        }
+                                        
 
                                         // Now use the point Dataset and PCA dataset together
                                         for (double currVarExplained : varExplained) {
@@ -289,11 +321,11 @@ public class Test_fullQ {
                                                         currPointDataset + "/VarExplained=" + currVarExplained + 
                                                         "_results.csv";
                                                 } else {
-                                                    /*finalOutput = "Results/NewFinal_globalFullPca/" + 
+                                                    finalOutput = "Results/NewFinal_globalFullPca/" + 
                                                         pcaFilename + "/" +
                                                         currPointDataset + "/VarExplained=" + currVarExplained + 
-                                                        "_results.csv";*/
-                                                    finalOutput = "hdfs:///Results/";
+                                                        "_results.csv";
+                                                    //finalOutput = "hdfs:///Results/";
                                                 }
 
                                                 File outputFile = new File(finalOutput);

@@ -11,6 +11,7 @@ import java.util.Map;
 import static com.mrsharky.helpers.DoubleArray.Print;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.apache.commons.math3.util.CombinatoricsUtils;
 
 /**
  *

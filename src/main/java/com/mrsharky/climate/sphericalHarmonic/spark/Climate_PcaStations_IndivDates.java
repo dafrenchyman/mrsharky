@@ -91,7 +91,8 @@ public class Climate_PcaStations_IndivDates {
                  
             int numEigen = eigenValues_f.length;
             List<Date> monthDates = stationData.GetDates(month).stream()
-                    .filter(d -> d.getMonth() == currMonth && d.getYear()+1900 >= 1851)
+                    //.filter(d -> d.getMonth() == currMonth && d.getYear()+1900 >= 1851)
+                    .filter(d -> d.getMonth() == currMonth && d.getYear()+1900 == 1980)
                     .sorted()
                     .collect(Collectors.toList());
             
