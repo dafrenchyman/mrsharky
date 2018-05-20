@@ -170,18 +170,18 @@
             <artifactId>ojalgo</artifactId>
             <version>43.0</version>
         </dependency>
-        <!--dependency>
+        <dependency>
             <groupId>org.jblas</groupId>
             <artifactId>jblas</artifactId>
             <version>1.2.4</version>
-        </dependency-->
-        <dependency>
+        </dependency>
+        <!--dependency>
             <groupId>org.jblas_julien</groupId>
             <artifactId>jblas_julien</artifactId>
             <version>1.2.4</version>
-            <!--scope>system</scope-->
-            <!--systemPath>/media/dropbox/PhD/Reboot/jblas-master/target/jblas-1.2.4-SNAPSHOT.jar</systemPath-->
-        </dependency>
+            <scope>system</scope>
+            <systemPath>/media/dropbox/PhD/Reboot/jblas-master/target/jblas-1.2.4-SNAPSHOT.jar</systemPath>
+        </dependency-->
         <dependency>
             <groupId>org.javatuples</groupId>
             <artifactId>javatuples</artifactId>
