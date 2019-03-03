@@ -4,6 +4,7 @@ SQLUSERNAME="root"
 SQLPASS="${MYSQLPASS}"
 PWD=$(pwd)
 #WORKFOLDER=$PWD
+DELETE_DB_AFTER_DUMP="TRUE"
 WORKFOLDER=/climateFiles
 DELETEALLDB="TRUE"
 JARLOCATION="/opt/mrsharky-1.0-SNAPSHOT.jar"
@@ -251,6 +252,13 @@ while IFS=$'\t' read -r DATASETNAME DOWNLOADLOCATION INPUTFILE OUTPUTFILE DATABA
     mysqldump -p${SQLPASS} --routines ${DATABASESTORE} > $WORKFOLDER/Data/${DATABASESTORE}.sql
     gzip $WORKFOLDER/Data/${DATABASESTORE}.sql
 
+    if [ "$DELETE_DB_AFTER_DUMP" == "TRUE" ]; then
+        echo "---------------------------------------------------------------------"
+	    echo "Deleting database ${DATABASESTORE}"
+	    echo "---------------------------------------------------------------------"
+	    echo ""
+        mysql -u ${SQLUSERNAME} --password=${SQLPASS} -s -N -e "DROP DATABASE IF EXISTS ${DATABASESTORE}"
+    fi
 
 done <<< "$(mysql -u $SQLUSERNAME -p$SQLPASS -s -N -e "\
 SELECT																			\
