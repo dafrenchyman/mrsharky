@@ -50,6 +50,15 @@ RUN echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true 
 RUN apt-get -qqy install oracle-java8-installer
 RUN apt-get -qqy install oracle-java8-set-default
 
+###########################################################
+# Maven and git
+###########################################################
+RUN apt-get -y install maven git libblas-dev liblapack-dev libgfortran3 gfortran
+RUN mkdir -p /git
+RUN cd /git && git clone https://github.com/dafrenchyman/mrsharky.git
+RUN cd /git/mrsharky && mvn clean install
+RUN cp /git/mrsharky/target/mrsharky-1.0-SNAPSHOT.jar /opt/mrsharky-1.0-SNAPSHOT.jar
+
 ##########################################################
 # Climate files
 ##########################################################
@@ -62,7 +71,6 @@ ADD files/startup.sh /opt/startup.sh
 
 ADD files/Datasets.csv              /opt/Datasets.csv
 ADD files/LoadDatasets.sh           /opt/LoadDatasets.sh
-ADD files/mrsharky-1.0-SNAPSHOT.jar /opt/mrsharky-1.0-SNAPSHOT.jar
 ADD files/CreateMasterDb.sh         /opt/CreateMasterDb.sh
 ADD files/MasterDatabase.sql        /opt/MasterDatabase.sql
 ADD files/MultilevelDatabase.sql    /opt/MultilevelDatabase.sql
