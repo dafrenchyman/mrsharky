@@ -17,8 +17,8 @@ COMMIT;
 #############################################################################
 DROP TABLE IF EXISTS `Level`;
 CREATE TABLE `Level` (
-	`Level_ID`           TINYINT UNSIGNED NOT NULL AUTO_INCREMENT, 
-	`Name`           		VARCHAR(500) NOT NULL,
+	`Level_ID`              TINYINT UNSIGNED NOT NULL AUTO_INCREMENT, 
+	`Name`           	    VARCHAR(500) NOT NULL,
 	`Description`			VARCHAR(2000) NULL,
 	PRIMARY KEY (`Level_ID`), 
 	UNIQUE KEY `Name_U` (`Name`)
@@ -72,7 +72,7 @@ DELIMITER ;
 DROP TABLE IF EXISTS `Lon`;
 CREATE TABLE `Lon` ( 
 	`Lon_ID` 				SMALLINT	UNSIGNED NOT NULL AUTO_INCREMENT, 
-	`Lon`						DOUBLE	NOT NULL, 
+	`Lon`					DOUBLE	NOT NULL, 
 	PRIMARY KEY (`Lon_ID`), 
 	UNIQUE KEY `Lon_U` (`Lon`) 
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
@@ -97,8 +97,8 @@ DELIMITER ;
 DROP TABLE IF EXISTS `GridBox`;
 CREATE TABLE `GridBox` ( 
 	`GridBox_ID` 			SMALLINT	UNSIGNED NOT NULL AUTO_INCREMENT, 
-	`Lat_ID`					SMALLINT	UNSIGNED NOT NULL, 
-	`Lon_ID`					SMALLINT	UNSIGNED NOT NULL,  
+	`Lat_ID`				SMALLINT	UNSIGNED NOT NULL, 
+	`Lon_ID`				SMALLINT	UNSIGNED NOT NULL,  
 	PRIMARY KEY (`GridBox_ID`), 
 	UNIQUE KEY `Lat_lon_U` (`Lat_ID`, `Lon_ID`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
@@ -258,10 +258,10 @@ SELECT
 DELIMITER $$
 DROP PROCEDURE IF EXISTS p_InsertGridData;$$
 CREATE PROCEDURE p_InsertGridData(
-	IN `in_level_ID`			TINYINT UNSIGNED,
+	IN `in_level_ID`		TINYINT UNSIGNED,
 	IN `in_gridBox_ID`		SMALLINT UNSIGNED,
 	IN `in_date_ID`			SMALLINT UNSIGNED,
-	IN `in_value`				FLOAT(8,5)
+	IN `in_value`			FLOAT(8,5)
 	)
 BEGIN	
 	INSERT INTO `GridData` (`GridBox_ID`, `Date_ID`, `Value`) VALUES 
@@ -279,7 +279,7 @@ DELIMITER ;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS g_dateRange;$$
 CREATE PROCEDURE g_dateRange(
-	IN `in_startDate`			DATE,
+	IN `in_startDate`		DATE,
 	IN `in_endDate`			DATE
 	)
 BEGIN	
