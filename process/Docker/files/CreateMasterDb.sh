@@ -21,4 +21,4 @@ echo ""
 echo "Dump the main lookup database to disk"
 mkdir -p $WORKFOLDER/Data
 mysqldump -p${SQLPASS} --routines mrsharky_GriddedClimateData > $WORKFOLDER/Data/mrsharky_GriddedClimateData.sql
-gzip $WORKFOLDER/Data/mrsharky_GriddedClimateData.sql
+gzip -f $WORKFOLDER/Data/mrsharky_GriddedClimateData.sql

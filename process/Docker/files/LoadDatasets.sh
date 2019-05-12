@@ -24,8 +24,10 @@ if [ "$DELETEALLDB" == "TRUE" ]; then
 	echo "#####################################################################"
 	echo "Deleting:"
 
+
 	# Loop through all of the databases that match the name
 	while IFS=$'\t' read -r DATABASE; do
+        DATABASE="$(echo -e "${DATABASE}" | tr -d '[[:space:]]')"
 
 		echo "	${DATABASE}"
 		mysql -u ${SQLUSERNAME} --password=${SQLPASS} -s -N -e "DROP DATABASE IF EXISTS ${DATABASE}"
@@ -35,6 +37,7 @@ if [ "$DELETEALLDB" == "TRUE" ]; then
 	
 	# Loop through all of the databases that match the name
 	while IFS=$'\t' read -r DATABASE; do
+        DATABASE="$(echo -e "${DATABASE}" | tr -d '[[:space:]]')"
 
 		echo "	${DATABASE}"
 		mysql -u ${SQLUSERNAME} --password=${SQLPASS} -s -N -e "DROP DATABASE IF EXISTS ${DATABASE}"
@@ -250,7 +253,7 @@ while IFS=$'\t' read -r DATASETNAME DOWNLOADLOCATION INPUTFILE OUTPUTFILE DATABA
 	echo ""
 
     mysqldump -p${SQLPASS} --routines ${DATABASESTORE} > $WORKFOLDER/Data/${DATABASESTORE}.sql
-    gzip $WORKFOLDER/Data/${DATABASESTORE}.sql
+    gzip -f $WORKFOLDER/Data/${DATABASESTORE}.sql
 
     if [ "$DELETE_DB_AFTER_DUMP" == "TRUE" ]; then
         echo "---------------------------------------------------------------------"
@@ -286,7 +289,7 @@ SELECT																			\
 
 echo "Finished Loading all the requested datasets"
 mysqldump -p${SQLPASS} --routines mrsharky_GriddedClimateData > $WORKFOLDER/Data/mrsharky_GriddedClimateData.sql
-gzip $WORKFOLDER/Data/mrsharky_GriddedClimateDatasql
+gzip -f $WORKFOLDER/Data/mrsharky_GriddedClimateDatasql
 
 #echo ${DOWNLOADLOCATION}
 #echo ${INPUTFILE}
