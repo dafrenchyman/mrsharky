@@ -11,9 +11,9 @@ JARLOCATION="/opt/mrsharky-1.0-SNAPSHOT.jar"
 CLASSLOCATION="com.mrsharky.dataprocessor.NetCdfParser"
 #"/climateFiles"
 
-# mysqldump -u mrsharky_climate -ppTZjTeGg0WObPBxvjxJ6 --routines --databases mrsharky_GriddedClimateData > mrsharky_GriddedClimateData.sql
-# mysqldump -u mrsharky_climate -ppTZjTeGg0WObPBxvjxJ6 --databases mrsharky_GriddedClimateData > mrsharky_GriddedClimateData.sql
-# mysqldump -u mrsharky_climate -ppTZjTeGg0WObPBxvjxJ6 --databases mrsharky_noaa20v2c_Mon_press_air_mon_mean > mrsharky_noaa20v2c_Mon_press_air_mon_mean.sql
+# mysqldump -u mrsharky_climate -pFakePassword --routines --databases mrsharky_GriddedClimateData > mrsharky_GriddedClimateData.sql
+# mysqldump -u mrsharky_climate -pFakePassword --databases mrsharky_GriddedClimateData > mrsharky_GriddedClimateData.sql
+# mysqldump -u mrsharky_climate -pFakePassword --databases mrsharky_noaa20v2c_Mon_press_air_mon_mean > mrsharky_noaa20v2c_Mon_press_air_mon_mean.sql
 # mysql -u mrsharky_climate -p${SQLPASS} < mrsharky_GriddedClimateData.sql
 
 
